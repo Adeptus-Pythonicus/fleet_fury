@@ -10,7 +10,7 @@ async def client(ws):
     print(await ws.recv())
 
     while True:
-        msg = await ws.recv()
+        msg = json.loads(await ws.recv())
         print(f"Message from game: {msg}")
 
         if msg == "close":
