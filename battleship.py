@@ -28,6 +28,9 @@ BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 GRAY = (200, 200, 200)
 
+# Images
+battleship_img = pg.image.load("./battleship.png")
+
 # Create Window
 screen = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE)
 pg.display.set_caption("BATTLESHIP")
@@ -103,12 +106,12 @@ async def battleship():
         pg.display.flip()
 
         for event in pg.event.get():
-            if event.type == pg.QUIT:
-                running = False
-            elif event.type == pg.MOUSEBUTTONDOWN:
+            if event.type == pg.MOUSEBUTTONDOWN:
                 await select_tile(
                     grid2, GRID2_X, OFFSET_Y, event.pos, selected_tiles_opponent
                 )
+            if event.type == pg.QUIT:
+                running = False
 
         await asyncio.sleep(0)
 
