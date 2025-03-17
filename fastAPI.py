@@ -14,7 +14,7 @@ async def client_endpoint(websocket: WebSocket):
 
         #will process the data from game logic from Ulrik
         response = f"Processed: {data}"
-        await websocket.send_text(response)
+        await websocket.send_text(json.dumps(response))
 
 
 if __name__ == "__main__":
