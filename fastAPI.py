@@ -8,17 +8,13 @@ async def client_endpoint(websocket: WebSocket):
     await websocket.accept()
     print("client connected!")
 
-    try:
-        while True:           
-            data = await websocket.receive_text()
-            print(f"Received from client: {data}")
+    while True:           
+        data = await websocket.receive_text()
+        print(f"Received from client: {data}")
 
-            #will process the data from game logic from Ulrik
-            response = f"Processed: {data}"
-            await websocket.send_text(response)
-
-    except Exception as e:
-        print(f"WebSocket error: {e}")
+        #will process the data from game logic from Ulrik
+        response = f"Processed: {data}"
+        await websocket.send_text(response)
 
 
 if __name__ == "__main__":
