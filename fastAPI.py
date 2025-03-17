@@ -1,20 +1,25 @@
 from fastapi import FastAPI, WebSocket
+import uvicorn
 
-#create an instance of the FastAPI class
 app = FastAPI()
 
-#endpoint for the websocket is like a decorator "/" and "ws" for WebSocket as the path
-@app.websocket("/ws")
-
-#define a function that takes an input websocket borrowed from the WebSocket class
-#async is actually I dont know, the documentation does says so
-async def websocket_endpoint(websocket: WebSocket):
-    #await: it is like cin in c++ and waits for the user's input
-    #accept the WebSocket connection
+@app.websocket("/client")
+async def client_endpoint(websocket: WebSocket):
     await websocket.accept()
-    
-    #sends a send text message to the client
-    await websocket.send_text("Hello, world!")
-    
-    #close the connection
-    await websocket.close()
+    print("client connected!")
+
+    try:
+        while True:           
+            data = await websocket.receive_text()
+            print(f"Received from client: {data}")
+
+            #will process the data from game logic from Ulrik
+            response = f"Processed: {data}"
+            await websocket.send_text(response)
+
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=5050)
