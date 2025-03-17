@@ -1,7 +1,8 @@
-import pygame as pg
-import websockets
 import asyncio
 import json
+
+import pygame as pg
+import websockets
 
 # Initialize pygame
 pg.init()
