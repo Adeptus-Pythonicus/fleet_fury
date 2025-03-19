@@ -40,6 +40,16 @@ pg.display.set_caption("BATTLESHIP")
 grid1 = [[False for _ in range(COLS)] for _ in range(ROWS)]
 grid2 = [[False for _ in range(COLS)] for _ in range(ROWS)]
 
+
+boats = []
+boat_y = OFFSET_Y
+
+for i in range(5):
+    boat = pg.Rect(GRID1_X-CELL_SIZE*3, boat_y, CELL_SIZE*3, CELL_SIZE)
+    boats.append(boat)
+    boat_y += CELL_SIZE * 1.5
+
+
 selected_tiles_player = []
 selected_tiles_opponent = []
 
@@ -97,6 +107,7 @@ async def websocket_client():
 
 
 async def battleship():
+    active_boat = None
     running = True
     while running:
         screen.fill(WHITE)
@@ -104,6 +115,9 @@ async def battleship():
         draw_grid(grid1, GRID1_X, OFFSET_Y)
         draw_grid(grid2, GRID2_X, OFFSET_Y)
 
+        for boat in boats:
+            pg.draw.rect(screen, "BLACK", boat)
+        
         pg.display.flip()
 
         for event in pg.event.get():
@@ -111,6 +125,19 @@ async def battleship():
                 await select_tile(
                     grid2, GRID2_X, OFFSET_Y, event.pos, selected_tiles_opponent
                 )
+                if event.button == 1:
+                    for num, boat in enumerate(boats):
+                        if boat.collidepoint(event.pos):
+                            active_boat = num
+
+            if event.type == pg.MOUSEBUTTONUP:
+                if event.button == 1:
+                    active_boat = None
+
+            if event.type == pg.MOUSEMOTION:
+                if active_boat != None:
+                    boats[active_boat].move_ip(event.rel)
+
             if event.type == pg.QUIT:
                 running = False
 
