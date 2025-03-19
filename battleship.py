@@ -15,6 +15,7 @@ PADDING = 50
 
 # A single player's grid width
 GRID_WIDTH = COLS * CELL_SIZE
+GRID_HEIGHT = GRID_WIDTH
 
 TOTAL_WIDTH = GRID_WIDTH * 2 + PADDING
 
@@ -45,7 +46,7 @@ boats = []
 boat_y = OFFSET_Y
 
 for i in range(5):
-    boat = pg.Rect(GRID1_X-CELL_SIZE*3, boat_y, CELL_SIZE*3, CELL_SIZE)
+    boat = pg.Rect(GRID1_X - CELL_SIZE * 3, boat_y, CELL_SIZE * 3, CELL_SIZE)
     boats.append(boat)
     boat_y += CELL_SIZE * 1.5
 
@@ -70,6 +71,17 @@ def draw_grid(grid, offset_x, offset_y):
             pg.draw.rect(screen, WHITE, rect, 1)
 
 
+def is_over_grid(pos):
+    x, y = pos
+
+    if (x > GRID1_X and x < GRID1_X + TOTAL_WIDTH) and (
+        y > OFFSET_Y and y < OFFSET_Y + GRID_HEIGHT
+    ):
+        return True
+
+    return False
+
+
 async def select_tile(grid, offset_x, offset_y, pos, selected_tiles):
     x, y = pos
     col = int((x - offset_x) // CELL_SIZE)
@@ -86,6 +98,12 @@ async def select_tile(grid, offset_x, offset_y, pos, selected_tiles):
             return True
 
     return False
+
+
+# to snap blocks into place
+# TODO: name it better
+def check_placement(grid):
+    pass
 
 
 async def websocket_client():
@@ -117,7 +135,7 @@ async def battleship():
 
         for boat in boats:
             pg.draw.rect(screen, "BLACK", boat)
-        
+
         pg.display.flip()
 
         for event in pg.event.get():
