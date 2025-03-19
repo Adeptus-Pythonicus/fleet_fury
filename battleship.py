@@ -41,21 +41,19 @@ pg.display.set_caption("BATTLESHIP")
 grid1 = [[False for _ in range(COLS)] for _ in range(ROWS)]
 grid2 = [[False for _ in range(COLS)] for _ in range(ROWS)]
 
-
-boats = []
-boat_y = OFFSET_Y
-
-for i in range(5):
-    boat = pg.Rect(GRID1_X - CELL_SIZE * 3, boat_y, CELL_SIZE * 3, CELL_SIZE)
-    boats.append(boat)
-    boat_y += CELL_SIZE * 1.5
-
-
 selected_tiles_player = []
 selected_tiles_opponent = []
 
+boats = []
+
 target_coords = asyncio.Queue()
 
+def create_boats():
+    boat_y = OFFSET_Y
+    for i in range(5):  
+        boat = pg.Rect(GRID1_X - CELL_SIZE * 3, boat_y, CELL_SIZE * 3, CELL_SIZE)
+        boats.append(boat)
+        boat_y += CELL_SIZE * 1.5
 
 def draw_grid(grid, offset_x, offset_y):
     for row in range(ROWS):
@@ -126,12 +124,14 @@ async def websocket_client():
 
 async def battleship():
     active_boat = None
+    create_boats()
     running = True
     while running:
         screen.fill(WHITE)
 
         draw_grid(grid1, GRID1_X, OFFSET_Y)
         draw_grid(grid2, GRID2_X, OFFSET_Y)
+
 
         for boat in boats:
             pg.draw.rect(screen, "BLACK", boat)
