@@ -49,6 +49,8 @@ selected_tiles_opponent = []
 
 boats = []
 
+hp = pg.Rect(GRID2_X + CELL_SIZE * 5, offset_y, CELL_SIZE*1, CELL_SIZE*6)
+
 text_font = pg.font.Font(None, 30)
 
 target_coords = asyncio.Queue()
@@ -195,6 +197,8 @@ async def battleship():
 
         for boat in boats:
             pg.draw.rect(screen, BROWN, boat, border_radius=10)
+
+        pg.draw.rect(screen, BROWN, hp)
 
         pg.display.flip()
 
