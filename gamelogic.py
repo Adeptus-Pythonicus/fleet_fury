@@ -22,16 +22,16 @@ class Player(GameState):
             print(" ".join(map(str, row))) # Statement to remove extra syntax for printing lists.
 
     # Function for logic behind placing ships
-    def place_ship(self, ship_size: tuple, row: int, col: int, orientation: str) -> bool: 
-        ship_rows, ship_cols = ship_size
-
-        if row < 0 or col < 0 or row >= self.rows or col >= self.cols: # Check for initial placement being out of bounds
-            return False
-        
+    def place_ship(self, placetuple: tuple, orientation: str) -> bool: # make a method for cood being center of ship and placing 1 left and right or 1 up and down
+        row_ship = (1, 3) 
+        col_ship = (3, 1)
+        row, col = placetuple
+            
         if orientation == 'horizontal': # Ensure ship fits horizontally
+            ship_rows, ship_cols = row_ship
+
             if col + ship_cols > self.cols:
-                print("Error: ship goes out"
-                " of bounds")
+                print("Error: ship goes out of bounds")
                 return False  
             
             if any(self.player_grid[row][c] != 0 for c in range(col, col + ship_cols)): # Check for overlapping ships
@@ -42,6 +42,7 @@ class Player(GameState):
                 self.player_grid[row][c] = "x"
 
         elif orientation == 'vertical': # Ensure ship fits vertically
+            ship_rows, ship_cols = col_ship
             if row + ship_rows > self.rows:
                 print("Error: Ship goes out of bounds vertically.")
                 return False  
@@ -84,14 +85,14 @@ class Player(GameState):
 if __name__ == '__main__': # This main is used for testing and debugging
     player = Player() 
     print("Placing ship at (2,3 - horizontal)")
-    success = player.place_ship(player.row_ship, 2, 3, 'horizontal')
+    success = player.place_ship((2, 3), 'horizontal')
     print("Ship placed:", success)
     player.PrintGrid()
     print("Placing ship at (4,5 - vertical)")
-    success = player.place_ship(player.cols_ship, 4, 5, 'vertical')
+    success = player.place_ship((4, 5), 'vertical')
     player.PrintGrid()
     print("Placing ship at (8,8) - invalid orientation")
-    success = player.place_ship(player.cols_ship, 8, 8, 'diagonal')
+    success = player.place_ship((8, 8), 'diagonal')
     print("Ship placed:", success)
     player.PrintGrid()
     player.take_shot((2, 3))
