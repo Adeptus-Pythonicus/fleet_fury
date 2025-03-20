@@ -1,5 +1,6 @@
 from fastapi import FastAPI, WebSocket
 import uvicorn
+import json
 
 app = FastAPI()
 
@@ -8,7 +9,7 @@ async def client_endpoint(websocket: WebSocket):
     await websocket.accept()
     print("client connected!")
 
-    while True:           
+    while True:
         data = await websocket.receive_text()
         print(f"Received from client: {data}")
 

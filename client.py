@@ -15,7 +15,11 @@ async def handle_battleship_connection(websocket):
             print(f"Received from battleship.py: {message}")
 
             # forward the message to server.py
-            await server_ws.send(json.loads(message))
+            print(message)
+            #print(type(message))
+            #print(type(json.loads(message)))
+            await server_ws.send(json.dumps(message))
+
             # # wait for the reply
             # response = await server_ws.recv()
             # print(f"Received from server.py: {response}")
