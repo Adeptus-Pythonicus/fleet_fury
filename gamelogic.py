@@ -25,7 +25,7 @@ class Player(GameState):
     def place_ship(self, placetuple: tuple, orientation: str) -> bool: # make a method for cood being center of ship and placing 1 left and right or 1 up and down
         row_ship = (1, 3) 
         col_ship = (3, 1)
-        row, col = placetuple
+        row, col = placetuple # for placing ship, i recieve center coord, -1 based on horizontal or vertical and use my ship place algorithm
             
         if orientation == 'horizontal': # Ensure ship fits horizontally
             ship_rows, ship_cols = row_ship
