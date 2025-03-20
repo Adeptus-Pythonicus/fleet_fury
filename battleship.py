@@ -87,12 +87,12 @@ def draw_grid(grid, offset_x, offset_y):
             pg.draw.rect(screen, color, rect)
             pg.draw.rect(screen, WHITE, rect, 1)
     num_y = offset_y + CELL_SIZE * 0.4
-    for i in range(9, -1, -1):
+    for i in range(10):
         draw_text(str(i), text_font, DARK_BLUE, offset_x - CELL_SIZE * 0.5, num_y)
         num_y += CELL_SIZE
     num_x = offset_x + CELL_SIZE * 0.4
     for i in range(10):
-        draw_text(str(i), text_font, DARK_BLUE, num_x, offset_y + CELL_SIZE * 10.1)
+        draw_text(str(i), text_font, DARK_BLUE, num_x, offset_y - CELL_SIZE * 0.5)
         num_x += CELL_SIZE
 
 
