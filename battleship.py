@@ -26,9 +26,12 @@ OFFSET_Y = (HEIGHT - (ROWS * CELL_SIZE)) // 2
 
 # Colors
 WHITE = (255, 255, 255)
+LIGHT_BLUE = (218, 237, 244)
+DARK_BLUE = (25, 69, 83)
 BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 GRAY = (200, 200, 200)
+BROWN = (111, 78, 55)
 
 # Images
 battleship_img = pg.image.load("./battleship.png")
@@ -46,12 +49,14 @@ selected_tiles_opponent = []
 
 boats = []
 
+text_font = pg.font.Font(None, 30)
+
 target_coords = asyncio.Queue()
 
 def create_boats():
     boat_y = OFFSET_Y
     for i in range(5):  
-        boat = pg.Rect(GRID1_X - CELL_SIZE * 3, boat_y, CELL_SIZE * 3, CELL_SIZE)
+        boat = pg.Rect(GRID1_X - CELL_SIZE * 5, boat_y, CELL_SIZE * 3, CELL_SIZE)
         boats.append(boat)
         boat_y += CELL_SIZE * 1.5
 
@@ -67,7 +72,20 @@ def draw_grid(grid, offset_x, offset_y):
             color = BLUE if grid[row][col] else GRAY
             pg.draw.rect(screen, color, rect)
             pg.draw.rect(screen, WHITE, rect, 1)
+    num_y = offset_y + CELL_SIZE * 0.25
+    for i in range(9, -1, -1):  
+        draw_text(str(i), text_font, DARK_BLUE, offset_x - CELL_SIZE * 0.5, num_y)
+        num_y += CELL_SIZE
+    num_x = offset_x + CELL_SIZE * 0.25
+    for i in range(10):  
+        draw_text(str(i), text_font, DARK_BLUE, num_x, offset_y + CELL_SIZE * 10.1)
+        num_x += CELL_SIZE
+        
 
+
+def draw_text(text, font, color, x, y):
+    img = font.render(text, True, color)
+    screen.blit(img, (x, y))
 
 def is_over_grid(pos):
     x, y = pos
@@ -127,14 +145,14 @@ async def battleship():
     create_boats()
     running = True
     while running:
-        screen.fill(WHITE)
+        screen.fill(LIGHT_BLUE)
 
         draw_grid(grid1, GRID1_X, OFFSET_Y)
         draw_grid(grid2, GRID2_X, OFFSET_Y)
 
 
         for boat in boats:
-            pg.draw.rect(screen, "BLACK", boat)
+            pg.draw.rect(screen, BROWN, boat)
 
         pg.display.flip()
 
@@ -150,7 +168,6 @@ async def battleship():
                             holding_boat = True
                 elif event.button == 3 and holding_boat and active_boat is not None:
                     boats[active_boat].width, boats[active_boat].height = boats[active_boat].height, boats[active_boat].width
-
 
             if event.type == pg.MOUSEBUTTONUP:
                 if event.button == 1:
