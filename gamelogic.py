@@ -49,17 +49,18 @@ class Player1(GameState):
             return False
         return True  # Ship placed successfully
     
-    def take_shot(self, row: int, col: int) -> bool:
-        if row < 0 or col < 0 or row >= self.rows or col >= self.cols:
+    def take_shot(self,shot: tuple) -> bool: #change so input for shot is a tuple
+        shot_row, shot_col = shot
+        if shot_row < 0 or shot_col < 0 or shot_row >= self.rows or shot_col >= self.cols:
             print("Invalid shot! out of bounds")
             return 0
-        if self.player1_grid [row][col] == 'x':
+        if self.player1_grid [shot_row][shot_col] == 'x':
             print("Hit!")
-            self.player1_grid [row][col] = 'H'
+            self.player1_grid [shot_row][shot_col] = 'H'
             return 1
         else:
             print("Miss!")
-            self.player1_grid [row][col] = 'M'
+            self.player1_grid [shot_row][shot_col] = 'M'
             return 0
 
 class Player2(GameState):
@@ -87,7 +88,7 @@ if __name__ == '__main__':
     success = player1.place_ship(player1.cols_ship, 8, 8, 'diagonal')
     print("Ship placed:", success)
     player1.PrintGrid()
-    player1.take_shot(2, 3)
+    player1.take_shot((2, 3))
     player1.PrintGrid()
-    player1.take_shot(4, 4)
+    player1.take_shot((4, 4))
     player1.PrintGrid()
