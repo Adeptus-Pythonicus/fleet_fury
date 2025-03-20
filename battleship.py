@@ -53,12 +53,14 @@ text_font = pg.font.Font(None, 30)
 
 target_coords = asyncio.Queue()
 
+
 def create_boats():
     boat_y = OFFSET_Y
-    for i in range(5):  
+    for i in range(5):
         boat = pg.Rect(GRID1_X - CELL_SIZE * 5, boat_y, CELL_SIZE * 3, CELL_SIZE)
         boats.append(boat)
         boat_y += CELL_SIZE * 1.5
+
 
 def draw_grid(grid, offset_x, offset_y):
     for row in range(ROWS):
@@ -73,19 +75,19 @@ def draw_grid(grid, offset_x, offset_y):
             pg.draw.rect(screen, color, rect)
             pg.draw.rect(screen, WHITE, rect, 1)
     num_y = offset_y + CELL_SIZE * 0.25
-    for i in range(9, -1, -1):  
+    for i in range(9, -1, -1):
         draw_text(str(i), text_font, DARK_BLUE, offset_x - CELL_SIZE * 0.5, num_y)
         num_y += CELL_SIZE
     num_x = offset_x + CELL_SIZE * 0.25
-    for i in range(10):  
+    for i in range(10):
         draw_text(str(i), text_font, DARK_BLUE, num_x, offset_y + CELL_SIZE * 10.1)
         num_x += CELL_SIZE
-        
 
 
 def draw_text(text, font, color, x, y):
     img = font.render(text, True, color)
     screen.blit(img, (x, y))
+
 
 def is_over_grid(pos):
     x, y = pos
@@ -120,8 +122,17 @@ async def select_tile(grid, offset_x, offset_y, pos, selected_tiles):
 
 # to snap blocks into place
 # TODO: name it better
-def check_placement(grid):
-    pass
+def check_placement(pos, boat: pg.Rect):
+    if is_over_grid(pos):
+        x, y = pos
+
+        print(x, y)
+
+        # calculate the cell index
+        col = x // CELL_SIZE
+        row = y // CELL_SIZE
+
+        boat.move_ip(row, col)
 
 
 async def websocket_client():
@@ -152,7 +163,6 @@ async def battleship():
         draw_grid(grid1, GRID1_X, OFFSET_Y)
         draw_grid(grid2, GRID2_X, OFFSET_Y)
 
-
         for boat in boats:
             pg.draw.rect(screen, BROWN, boat, border_radius=10)
 
@@ -168,10 +178,14 @@ async def battleship():
                         if boat.collidepoint(event.pos):
                             active_boat = num
                 elif event.button == 3 and active_boat is not None:
-                    boats[active_boat].width, boats[active_boat].height = boats[active_boat].height, boats[active_boat].width
+                    boats[active_boat].width, boats[active_boat].height = (
+                        boats[active_boat].height,
+                        boats[active_boat].width,
+                    )
 
             if event.type == pg.MOUSEBUTTONUP:
-                if event.button == 1:
+                if event.button == 1 and active_boat is not None:
+                    check_placement(boats[active_boat].center, boats[active_boat])
                     active_boat = None
 
             if event.type == pg.MOUSEMOTION:
