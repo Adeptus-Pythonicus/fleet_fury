@@ -4,3 +4,5 @@ Ulrik - game_logic
 Jamie - fast api
 yulia - pygame
 saksham - websockets
+
+The magic behind battleships
