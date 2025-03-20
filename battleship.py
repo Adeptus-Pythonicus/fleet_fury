@@ -154,7 +154,7 @@ async def battleship():
 
 
         for boat in boats:
-            pg.draw.rect(screen, BROWN, boat)
+            pg.draw.rect(screen, BROWN, boat, border_radius=10)
 
         pg.display.flip()
 
@@ -167,14 +167,12 @@ async def battleship():
                     for num, boat in enumerate(boats):
                         if boat.collidepoint(event.pos):
                             active_boat = num
-                            holding_boat = True
-                elif event.button == 3 and holding_boat and active_boat is not None:
+                elif event.button == 3 and active_boat is not None:
                     boats[active_boat].width, boats[active_boat].height = boats[active_boat].height, boats[active_boat].width
 
             if event.type == pg.MOUSEBUTTONUP:
                 if event.button == 1:
                     active_boat = None
-                    holding_boat = False
 
             if event.type == pg.MOUSEMOTION:
                 if active_boat != None:
