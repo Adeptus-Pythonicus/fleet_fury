@@ -1,6 +1,7 @@
-import websockets
 import asyncio
 import json
+
+import websockets
 
 PORT = 5050
 
