@@ -165,7 +165,7 @@ def place_boat(boat: pg.Rect):
 
 
 async def websocket_client():
-    url = "ws://127.0.0.1:5050"
+    url = "ws://127.0.0.1:5051"
 
     async with websockets.connect(url) as ws:
         await ws.send("Pygame websocket connected!")
