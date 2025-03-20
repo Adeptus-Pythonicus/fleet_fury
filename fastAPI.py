@@ -13,6 +13,7 @@ async def client_endpoint(websocket: WebSocket):
         print(f"Received from client: {data}")
 
         #will process the data from game logic from Ulrik
+        #sending it back in a tuple
         response = f"Processed: {data}"
         await websocket.send_text(json.dumps(response))
 
