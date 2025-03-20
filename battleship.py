@@ -89,12 +89,12 @@ def draw_grid(grid, offset_x, offset_y):
             pg.draw.rect(screen, color, rect)
             pg.draw.rect(screen, WHITE, rect, 1)
     num_y = offset_y + CELL_SIZE * 0.4
-    for i in range(9, -1, -1):
+    for i in range(10):
         draw_text(str(i), text_font, DARK_BLUE, offset_x - CELL_SIZE * 0.5, num_y)
         num_y += CELL_SIZE
     num_x = offset_x + CELL_SIZE * 0.4
     for i in range(10):
-        draw_text(str(i), text_font, DARK_BLUE, num_x, offset_y + CELL_SIZE * 10.1)
+        draw_text(str(i), text_font, DARK_BLUE, num_x, offset_y - CELL_SIZE * 0.5)
         num_x += CELL_SIZE
 
 
@@ -167,10 +167,10 @@ def place_boat(boat: pg.Rect):
 
 
 async def websocket_client():
-    url = "ws://127.0.0.1:5050"
+    url = "ws://127.0.0.1:5051"
 
     async with websockets.connect(url) as ws:
-        await ws.send("Pygame websocket connected!")
+        # await ws.send("Pygame websocket connected!")
 
         while True:
             print("Waiting for coords")
