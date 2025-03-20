@@ -100,6 +100,8 @@ def is_over_grid(pos):
 
 async def select_tile(grid, offset_x, offset_y, pos, selected_tiles):
     x, y = pos
+
+    # calculate the cell index
     col = int((x - offset_x) // CELL_SIZE)
     row = int((y - offset_y) // CELL_SIZE)
 
