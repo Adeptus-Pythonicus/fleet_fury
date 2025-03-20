@@ -8,7 +8,7 @@ import websockets
 pg.init()
 
 # Window size
-WIDTH, HEIGHT = 1600, 900
+WIDTH, HEIGHT = 1600, 1000
 ROWS, COLS = 10, 10
 CELL_SIZE = WIDTH * 0.03
 PADDING = 50
@@ -56,10 +56,22 @@ target_coords = asyncio.Queue()
 
 def create_boats():
     boat_y = OFFSET_Y
-    for i in range(5):
+    for _ in range(5):
         boat = pg.Rect(GRID1_X - CELL_SIZE * 5, boat_y, CELL_SIZE * 3, CELL_SIZE)
         boats.append(boat)
         boat_y += CELL_SIZE * 1.5
+
+
+def reset_boat(boat: pg.Rect):
+    boat_index = boats.index(boat)
+    boat.width = CELL_SIZE * 3
+    boat.height = CELL_SIZE
+    boat.update(
+        GRID1_X - CELL_SIZE * 5,
+        (OFFSET_Y + (boat_index * (CELL_SIZE * 1.5))),
+        boat.width,
+        boat.height,
+    )
 
 
 def draw_grid(grid, offset_x, offset_y):
@@ -74,11 +86,11 @@ def draw_grid(grid, offset_x, offset_y):
             color = BLUE if grid[row][col] else GRAY
             pg.draw.rect(screen, color, rect)
             pg.draw.rect(screen, WHITE, rect, 1)
-    num_y = offset_y + CELL_SIZE * 0.25
+    num_y = offset_y + CELL_SIZE * 0.4
     for i in range(9, -1, -1):
         draw_text(str(i), text_font, DARK_BLUE, offset_x - CELL_SIZE * 0.5, num_y)
         num_y += CELL_SIZE
-    num_x = offset_x + CELL_SIZE * 0.25
+    num_x = offset_x + CELL_SIZE * 0.4
     for i in range(10):
         draw_text(str(i), text_font, DARK_BLUE, num_x, offset_y + CELL_SIZE * 10.1)
         num_x += CELL_SIZE
@@ -89,11 +101,12 @@ def draw_text(text, font, color, x, y):
     screen.blit(img, (x, y))
 
 
-def is_over_grid(pos):
+def is_over_player_grid(pos):
     x, y = pos
+    wiggle_room = CELL_SIZE * 0.48
 
-    if (x > GRID1_X and x < GRID1_X + TOTAL_WIDTH) and (
-        y > OFFSET_Y and y < OFFSET_Y + GRID_HEIGHT
+    if (x > GRID1_X - wiggle_room and x < GRID1_X + GRID_WIDTH + wiggle_room) and (
+        y > OFFSET_Y - wiggle_room and y < OFFSET_Y + GRID_HEIGHT + wiggle_room
     ):
         return True
 
@@ -121,18 +134,34 @@ async def select_tile(grid, offset_x, offset_y, pos, selected_tiles):
 
 
 # to snap blocks into place
-# TODO: name it better
-def check_placement(pos, boat: pg.Rect):
-    if is_over_grid(pos):
-        x, y = pos
+def place_boat(boat: pg.Rect):
+    if (
+        is_over_player_grid(boat.topleft)
+        and is_over_player_grid(boat.bottomright)
+        and is_over_player_grid(boat.center)
+    ):
+        x, y = boat.center
 
-        print(x, y)
+        # TODO: need to send this using queue
+        # ship coords
+        grid_x = (x - GRID1_X) // CELL_SIZE
+        gird_y = (y - OFFSET_Y) // CELL_SIZE
 
         # calculate the cell index
-        col = x // CELL_SIZE
-        row = y // CELL_SIZE
+        col = ((x - GRID1_X) // CELL_SIZE) * CELL_SIZE + (GRID1_X + (CELL_SIZE // 2))
+        row = ((y - OFFSET_Y) // CELL_SIZE) * CELL_SIZE + (OFFSET_Y + (CELL_SIZE // 2))
 
-        boat.move_ip(row, col)
+        temp_boat = boat.copy()
+        temp_boat.center = (int(col), int(row))
+
+        for other_boat in boats:
+            if other_boat != boat and temp_boat.colliderect(other_boat):
+                reset_boat(boat)
+                return
+
+        boat.center = (int(col), int(row))
+    else:
+        reset_boat(boat)
 
 
 async def websocket_client():
@@ -153,6 +182,7 @@ async def websocket_client():
                 break
 
 
+# TODO: fix logic for turns and only allow select_tile when game starts
 async def battleship():
     active_boat = None
     create_boats()
@@ -185,7 +215,7 @@ async def battleship():
 
             if event.type == pg.MOUSEBUTTONUP:
                 if event.button == 1 and active_boat is not None:
-                    check_placement(boats[active_boat].center, boats[active_boat])
+                    place_boat(boats[active_boat])
                     active_boat = None
 
             if event.type == pg.MOUSEMOTION:
