@@ -1,8 +1,8 @@
 # Main
 
-[] rectangle on the screen to drag and drop on the grid(ship placment function)
-[] color grid background
-[] add numbers for grid values
+[x] rectangle on the screen to drag and drop on the grid(ship placment function)
+[x] color grid background
+[x] add numbers for grid values
 [] add healthbar
 [] player turns
 [] hit indicator
