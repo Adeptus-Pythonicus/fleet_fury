@@ -168,7 +168,7 @@ async def websocket_client():
     url = "ws://127.0.0.1:5051"
 
     async with websockets.connect(url) as ws:
-        await ws.send("Pygame websocket connected!")
+        # await ws.send("Pygame websocket connected!")
 
         while True:
             print("Waiting for coords")
