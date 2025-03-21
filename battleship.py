@@ -133,12 +133,9 @@ async def select_tile(grid, offset_x, offset_y, pos, selected_tiles):
 
             selected_tiles.append(tile_coord)
             await target_coords.put(json.dumps(tile_coord))
+
             global turn
             turn = False
-
-            return True
-
-    return False
 
 
 # to snap blocks into place
@@ -172,11 +169,19 @@ def place_boat(boat: pg.Rect):
         reset_boat(boat)
 
 
-# TODO: fix logic for turns and only allow select_tile when game starts
+# TODO: set ship phase and game phase, fix hp bar, get orientation of boat
 async def battleship():
+    global turn
     active_boat = None
     create_boats()
     running = True
+
+    turn_message = await player_turn.get()
+    if turn_message == "Your turn":
+        turn = True
+    else:
+        turn = False
+
     while running:
         screen.fill(LIGHT_BLUE)
 
@@ -186,9 +191,17 @@ async def battleship():
         for boat in boats:
             pg.draw.rect(screen, BROWN, boat, border_radius=10)
 
-        pg.draw.rect(screen, BROWN, hp)
+        # pg.draw.rect(screen, BROWN, hp)
 
         pg.display.flip()
+
+        if not turn:
+            try:
+                turn_message = await asyncio.wait_for(player_turn.get(), 0.1)
+                if turn_message == "Your turn":
+                    turn = True
+            except asyncio.TimeoutError:
+                pass
 
         for event in pg.event.get():
             if event.type == pg.MOUSEBUTTONDOWN:
@@ -218,7 +231,7 @@ async def battleship():
             if event.type == pg.QUIT:
                 running = False
 
-        await asyncio.sleep(0)
+        await asyncio.sleep(0.01)
 
     pg.quit()
 
@@ -226,7 +239,7 @@ async def battleship():
 async def main():
     battleship_task = asyncio.create_task(battleship())
     server_connection_task = asyncio.create_task(
-        client.connect_server(target_coords, 5, player_turn)
+        client.handle_server_connection(target_coords, 5, player_turn)
     )
 
     await asyncio.gather(battleship_task, server_connection_task)
