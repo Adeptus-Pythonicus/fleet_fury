@@ -4,6 +4,8 @@ import json
 import pygame as pg
 import websockets
 
+import client
+
 # Initialize pygame
 pg.init()
 
@@ -49,11 +51,13 @@ selected_tiles_opponent = []
 
 boats = []
 
-hp = pg.Rect(GRID2_X + CELL_SIZE * 5, offset_y, CELL_SIZE*1, CELL_SIZE*6)
+hp = pg.Rect(GRID2_X + CELL_SIZE * 5, OFFSET_Y, CELL_SIZE * 1, CELL_SIZE * 6)
 
 text_font = pg.font.Font(None, 30)
 
 target_coords = asyncio.Queue()
+player_turn = asyncio.Queue()
+turn = False
 
 
 def create_boats():
@@ -128,7 +132,9 @@ async def select_tile(grid, offset_x, offset_y, pos, selected_tiles):
             tile_coord = (row, col)
 
             selected_tiles.append(tile_coord)
-            await target_coords.put(tile_coord)
+            await target_coords.put(json.dumps(tile_coord))
+            global turn
+            turn = False
 
             return True
 
@@ -166,24 +172,6 @@ def place_boat(boat: pg.Rect):
         reset_boat(boat)
 
 
-async def websocket_client():
-    url = "ws://127.0.0.1:5051"
-
-    async with websockets.connect(url) as ws:
-        # await ws.send("Pygame websocket connected!")
-
-        while True:
-            print("Waiting for coords")
-            hit_coords = await target_coords.get()
-            print("Sending coords")
-            await ws.send(json.dumps(hit_coords))
-            msg = await ws.recv()
-            print(msg)
-
-            if msg == "close":
-                break
-
-
 # TODO: fix logic for turns and only allow select_tile when game starts
 async def battleship():
     active_boat = None
@@ -204,9 +192,10 @@ async def battleship():
 
         for event in pg.event.get():
             if event.type == pg.MOUSEBUTTONDOWN:
-                await select_tile(
-                    grid2, GRID2_X, OFFSET_Y, event.pos, selected_tiles_opponent
-                )
+                if turn:
+                    await select_tile(
+                        grid2, GRID2_X, OFFSET_Y, event.pos, selected_tiles_opponent
+                    )
                 if event.button == 1:
                     for num, boat in enumerate(boats):
                         if boat.collidepoint(event.pos):
@@ -236,9 +225,11 @@ async def battleship():
 
 async def main():
     battleship_task = asyncio.create_task(battleship())
-    websocket_client_task = asyncio.create_task(websocket_client())
+    server_connection_task = asyncio.create_task(
+        client.connect_server(target_coords, 5, player_turn)
+    )
 
-    await asyncio.gather(battleship_task, websocket_client_task)
+    await asyncio.gather(battleship_task, server_connection_task)
 
 
 asyncio.run(main())

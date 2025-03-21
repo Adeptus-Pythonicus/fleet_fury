@@ -22,11 +22,13 @@ import websockets
 #
 #             # relay the response to battleship.py
 #             # await websocket.send(json.dumps(response))
-async def connect_server(target_coords):
-    print(target_coords)
-    # async with websockets.connect("ws://127.0.0.1:5050/client") as server_ws:
-    #     while True:
+async def connect_server(
+    target: asyncio.Queue, ship: asyncio.Queue, turn: asyncio.Queue
+):
+    print("Client started!")
+    async with websockets.connect("ws://127.0.0.1:5050/client") as server:
+        while True:
+            target_coords = await target.get()
+            await turn.put(server.recv())
 
-
-async def send_message(message):
-    asyncio.run(connect_server(message))
+            await server.send(target_coords)
