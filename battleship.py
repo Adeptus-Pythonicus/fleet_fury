@@ -19,12 +19,10 @@ PADDING = 50
 GRID_WIDTH = COLS * CELL_SIZE
 GRID_HEIGHT = GRID_WIDTH
 
-TOTAL_WIDTH = GRID_WIDTH * 2 + PADDING
-
-# offset value to calculate the cell index
-GRID1_X = (WIDTH - TOTAL_WIDTH) // 2
-GRID2_X = GRID1_X + GRID_WIDTH + PADDING
-OFFSET_Y = (HEIGHT - (ROWS * CELL_SIZE)) // 2
+# offset values of the grid from the screen to calculate the cell index
+GRID1_X_OFFSET = (WIDTH - (GRID_WIDTH * 2 + PADDING)) // 2
+GRID2_X_OFFSET = GRID1_X_OFFSET + GRID_WIDTH + PADDING
+GRID_Y_OFFSET = (HEIGHT - (ROWS * CELL_SIZE)) // 2
 
 # Colors
 WHITE = (255, 255, 255)
@@ -51,7 +49,9 @@ selected_tiles_opponent = []
 
 boats = []
 
-hp = pg.Rect(GRID2_X + CELL_SIZE * 5, OFFSET_Y, CELL_SIZE * 1, CELL_SIZE * 6)
+hp = pg.Rect(
+    GRID2_X_OFFSET + CELL_SIZE * 5, GRID_Y_OFFSET, CELL_SIZE * 1, CELL_SIZE * 6
+)
 
 text_font = pg.font.Font(None, 30)
 
@@ -61,9 +61,9 @@ turn = False
 
 
 def create_boats():
-    boat_y = OFFSET_Y
+    boat_y = GRID_Y_OFFSET
     for _ in range(5):
-        boat = pg.Rect(GRID1_X - CELL_SIZE * 5, boat_y, CELL_SIZE * 3, CELL_SIZE)
+        boat = pg.Rect(GRID1_X_OFFSET - CELL_SIZE * 5, boat_y, CELL_SIZE * 3, CELL_SIZE)
         boats.append(boat)
         boat_y += CELL_SIZE * 1.5
 
@@ -73,32 +73,32 @@ def reset_boat(boat: pg.Rect):
     boat.width = CELL_SIZE * 3
     boat.height = CELL_SIZE
     boat.update(
-        GRID1_X - CELL_SIZE * 5,
-        (OFFSET_Y + (boat_index * (CELL_SIZE * 1.5))),
+        GRID1_X_OFFSET - CELL_SIZE * 5,
+        (GRID_Y_OFFSET + (boat_index * (CELL_SIZE * 1.5))),
         boat.width,
         boat.height,
     )
 
 
-def draw_grid(grid, offset_x, offset_y):
+def draw_grid(grid, offset_x):
     for row in range(ROWS):
         for col in range(COLS):
             rect = pg.Rect(
                 offset_x + col * CELL_SIZE,
-                offset_y + row * CELL_SIZE,
+                GRID_Y_OFFSET + row * CELL_SIZE,
                 CELL_SIZE,
                 CELL_SIZE,
             )
             color = BLUE if grid[row][col] else GRAY
             pg.draw.rect(screen, color, rect)
             pg.draw.rect(screen, WHITE, rect, 1)
-    num_y = offset_y + CELL_SIZE * 0.4
+    num_y = GRID_Y_OFFSET + CELL_SIZE * 0.4
     for i in range(10):
         draw_text(str(i), text_font, DARK_BLUE, offset_x - CELL_SIZE * 0.5, num_y)
         num_y += CELL_SIZE
     num_x = offset_x + CELL_SIZE * 0.4
     for i in range(10):
-        draw_text(str(i), text_font, DARK_BLUE, num_x, offset_y - CELL_SIZE * 0.5)
+        draw_text(str(i), text_font, DARK_BLUE, num_x, GRID_Y_OFFSET - CELL_SIZE * 0.5)
         num_x += CELL_SIZE
 
 
@@ -111,20 +111,24 @@ def is_over_player_grid(pos):
     x, y = pos
     wiggle_room = CELL_SIZE * 0.48
 
-    if (x > GRID1_X - wiggle_room and x < GRID1_X + GRID_WIDTH + wiggle_room) and (
-        y > OFFSET_Y - wiggle_room and y < OFFSET_Y + GRID_HEIGHT + wiggle_room
+    if (
+        x > GRID1_X_OFFSET - wiggle_room
+        and x < GRID1_X_OFFSET + GRID_WIDTH + wiggle_room
+    ) and (
+        y > GRID_Y_OFFSET - wiggle_room
+        and y < GRID_Y_OFFSET + GRID_HEIGHT + wiggle_room
     ):
         return True
 
     return False
 
 
-async def select_tile(grid, offset_x, offset_y, pos, selected_tiles):
+async def select_tile(grid, offset_x, pos, selected_tiles):
     x, y = pos
 
     # calculate the cell index
     col = int((x - offset_x) // CELL_SIZE)
-    row = int((y - offset_y) // CELL_SIZE)
+    row = int((y - GRID_Y_OFFSET) // CELL_SIZE)
 
     if 0 <= col < COLS and 0 <= row < ROWS:
         if not grid[row][col]:
@@ -149,12 +153,16 @@ def place_boat(boat: pg.Rect):
 
         # TODO: need to send this using queue
         # ship coords
-        grid_x = (x - GRID1_X) // CELL_SIZE
-        gird_y = (y - OFFSET_Y) // CELL_SIZE
+        grid_x = (x - GRID1_X_OFFSET) // CELL_SIZE
+        gird_y = (y - GRID_Y_OFFSET) // CELL_SIZE
 
-        # calculate the cell index
-        col = ((x - GRID1_X) // CELL_SIZE) * CELL_SIZE + (GRID1_X + (CELL_SIZE // 2))
-        row = ((y - OFFSET_Y) // CELL_SIZE) * CELL_SIZE + (OFFSET_Y + (CELL_SIZE // 2))
+        # calculate the cell to be placed on the screen
+        col = ((x - GRID1_X_OFFSET) // CELL_SIZE) * CELL_SIZE + (
+            GRID1_X_OFFSET + (CELL_SIZE // 2)
+        )
+        row = ((y - GRID_Y_OFFSET) // CELL_SIZE) * CELL_SIZE + (
+            GRID_Y_OFFSET + (CELL_SIZE // 2)
+        )
 
         temp_boat = boat.copy()
         temp_boat.center = (int(col), int(row))
@@ -185,8 +193,8 @@ async def battleship():
     while running:
         screen.fill(LIGHT_BLUE)
 
-        draw_grid(grid1, GRID1_X, OFFSET_Y)
-        draw_grid(grid2, GRID2_X, OFFSET_Y)
+        draw_grid(grid1, GRID1_X_OFFSET)
+        draw_grid(grid2, GRID2_X_OFFSET)
 
         for boat in boats:
             pg.draw.rect(screen, BROWN, boat, border_radius=10)
@@ -207,7 +215,7 @@ async def battleship():
             if event.type == pg.MOUSEBUTTONDOWN:
                 if turn:
                     await select_tile(
-                        grid2, GRID2_X, OFFSET_Y, event.pos, selected_tiles_opponent
+                        grid2, GRID2_X_OFFSET, event.pos, selected_tiles_opponent
                     )
                 if event.button == 1:
                     for num, boat in enumerate(boats):
