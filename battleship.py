@@ -80,11 +80,11 @@ def reset_boat(boat: pg.Rect):
     )
 
 
-def draw_grid(grid, offset_x):
+def draw_grid(grid, x_offset):
     for row in range(ROWS):
         for col in range(COLS):
             rect = pg.Rect(
-                offset_x + col * CELL_SIZE,
+                x_offset + col * CELL_SIZE,
                 GRID_Y_OFFSET + row * CELL_SIZE,
                 CELL_SIZE,
                 CELL_SIZE,
@@ -94,9 +94,9 @@ def draw_grid(grid, offset_x):
             pg.draw.rect(screen, WHITE, rect, 1)
     num_y = GRID_Y_OFFSET + CELL_SIZE * 0.4
     for i in range(10):
-        draw_text(str(i), text_font, DARK_BLUE, offset_x - CELL_SIZE * 0.5, num_y)
+        draw_text(str(i), text_font, DARK_BLUE, x_offset - CELL_SIZE * 0.5, num_y)
         num_y += CELL_SIZE
-    num_x = offset_x + CELL_SIZE * 0.4
+    num_x = x_offset + CELL_SIZE * 0.4
     for i in range(10):
         draw_text(str(i), text_font, DARK_BLUE, num_x, GRID_Y_OFFSET - CELL_SIZE * 0.5)
         num_x += CELL_SIZE
@@ -123,11 +123,11 @@ def is_over_player_grid(pos):
     return False
 
 
-async def select_tile(grid, offset_x, pos, selected_tiles):
+async def select_tile(grid, x_offset, pos, selected_tiles):
     x, y = pos
 
     # calculate the cell index
-    col = int((x - offset_x) // CELL_SIZE)
+    col = int((x - x_offset) // CELL_SIZE)
     row = int((y - GRID_Y_OFFSET) // CELL_SIZE)
 
     if 0 <= col < COLS and 0 <= row < ROWS:
@@ -154,7 +154,7 @@ def place_boat(boat: pg.Rect):
         # TODO: need to send this using queue
         # ship coords
         grid_x = (x - GRID1_X_OFFSET) // CELL_SIZE
-        gird_y = (y - GRID_Y_OFFSET) // CELL_SIZE
+        grid_y = (y - GRID_Y_OFFSET) // CELL_SIZE
 
         # calculate the cell to be placed on the screen
         col = ((x - GRID1_X_OFFSET) // CELL_SIZE) * CELL_SIZE + (
