@@ -26,10 +26,10 @@ class Player(GameState):
         row_ship = (1, 3) 
         col_ship = (3, 1)
         row, col = placetuple # for placing ship, i recieve center coord, -1 based on horizontal or vertical and use my ship place algorithm
-            
+
         if orientation == 'horizontal': # Ensure ship fits horizontally
             ship_rows, ship_cols = row_ship
-
+            col = col - 1
             if col + ship_cols > self.cols:
                 print("Error: ship goes out of bounds")
                 return False  
@@ -43,6 +43,7 @@ class Player(GameState):
 
         elif orientation == 'vertical': # Ensure ship fits vertically
             ship_rows, ship_cols = col_ship
+            row = row - 1
             if row + ship_rows > self.rows:
                 print("Error: Ship goes out of bounds vertically.")
                 return False  
