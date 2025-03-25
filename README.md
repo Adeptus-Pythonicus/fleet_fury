@@ -4,6 +4,8 @@ Fleety Fury is a Python-based Battleship game that utilizes websockets as
 our project for CSCI 331 Object Oriented Programming course.
 The codebase features code for the client, client-side UI, the server, and the game logic.
 
+## How it works
+
 
 
 
