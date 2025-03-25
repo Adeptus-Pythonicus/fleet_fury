@@ -49,9 +49,7 @@ selected_tiles_opponent = []
 
 boats = []
 
-hp = pg.Rect(
-    GRID2_X_OFFSET + CELL_SIZE * 5, GRID_Y_OFFSET, CELL_SIZE * 1, CELL_SIZE * 6
-)
+p1_hp = pg.Rect(GRID1_X, OFFSET_Y + CELL_SIZE*10.1, CELL_SIZE*6, CELL_SIZE*0.5)
 
 text_font = pg.font.Font(None, 30)
 
@@ -199,7 +197,7 @@ async def battleship():
         for boat in boats:
             pg.draw.rect(screen, BROWN, boat, border_radius=10)
 
-        # pg.draw.rect(screen, BROWN, hp)
+        pg.draw.rect(screen, BROWN, p1_hp)
 
         pg.display.flip()
 
@@ -226,6 +224,7 @@ async def battleship():
                         boats[active_boat].height,
                         boats[active_boat].width,
                     )
+                    
 
             if event.type == pg.MOUSEBUTTONUP:
                 if event.button == 1 and active_boat is not None:
