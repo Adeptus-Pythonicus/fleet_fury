@@ -2,7 +2,6 @@ import asyncio
 import json
 
 import pygame as pg
-import websockets
 
 import client
 
@@ -49,13 +48,17 @@ selected_tiles_opponent = []
 
 boats = []
 
-p1_hp = pg.Rect(GRID1_X, OFFSET_Y + CELL_SIZE*10.1, CELL_SIZE*6, CELL_SIZE*0.5)
+p1_hp = pg.Rect(
+    GRID1_X_OFFSET, GRID_Y_OFFSET + CELL_SIZE * 10.1, CELL_SIZE * 6, CELL_SIZE * 0.5
+)
 
 text_font = pg.font.Font(None, 30)
 
 target_coords = asyncio.Queue()
 player_turn = asyncio.Queue()
 turn = False
+
+boat_coords = []
 
 
 def create_boats():
@@ -142,6 +145,8 @@ async def select_tile(grid, x_offset, pos, selected_tiles):
 
 # to snap blocks into place
 def place_boat(boat: pg.Rect):
+    global boat_coords
+
     if (
         is_over_player_grid(boat.topleft)
         and is_over_player_grid(boat.bottomright)
@@ -180,6 +185,7 @@ async def battleship():
     global turn
     active_boat = None
     create_boats()
+    game_phase = False
     running = True
 
     turn_message = await player_turn.get()
@@ -187,6 +193,39 @@ async def battleship():
         turn = True
     else:
         turn = False
+
+    while not game_phase:
+        screen.fill(LIGHT_BLUE)
+
+        draw_grid(grid1, GRID1_X_OFFSET)
+        draw_grid(grid2, GRID2_X_OFFSET)
+
+        for boat in boats:
+            pg.draw.rect(screen, BROWN, boat, border_radius=10)
+
+        pg.display.flip()
+
+        for event in pg.event.get():
+            if event.type == pg.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    for num, boat in enumerate(boats):
+                        if boat.collidepoint(event.pos):
+                            active_boat = num
+                elif event.button == 3 and active_boat is not None:
+                    boats[active_boat].width, boats[active_boat].height = (
+                        boats[active_boat].height,
+                        boats[active_boat].width,
+                    )
+            if event.type == pg.MOUSEBUTTONUP:
+                if event.button == 1 and active_boat is not None:
+                    place_boat(boats[active_boat])
+                    active_boat = None
+            if event.type == pg.MOUSEMOTION:
+                if active_boat != None:
+                    boats[active_boat].move_ip(event.rel)
+
+        if len(boat_coords) == 5:
+            game_phase = True
 
     while running:
         screen.fill(LIGHT_BLUE)
@@ -215,25 +254,6 @@ async def battleship():
                     await select_tile(
                         grid2, GRID2_X_OFFSET, event.pos, selected_tiles_opponent
                     )
-                if event.button == 1:
-                    for num, boat in enumerate(boats):
-                        if boat.collidepoint(event.pos):
-                            active_boat = num
-                elif event.button == 3 and active_boat is not None:
-                    boats[active_boat].width, boats[active_boat].height = (
-                        boats[active_boat].height,
-                        boats[active_boat].width,
-                    )
-                    
-
-            if event.type == pg.MOUSEBUTTONUP:
-                if event.button == 1 and active_boat is not None:
-                    place_boat(boats[active_boat])
-                    active_boat = None
-
-            if event.type == pg.MOUSEMOTION:
-                if active_boat != None:
-                    boats[active_boat].move_ip(event.rel)
 
             if event.type == pg.QUIT:
                 running = False
