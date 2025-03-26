@@ -1,37 +1,53 @@
 import asyncio
-import json
 
 import websockets
 
 
-async def handle_battleship_connection(websocket):
-    # this is to connect to /client at port 5050
-    async with websockets.connect("ws://127.0.0.1:5050/client") as server_ws:
+# Asyncio queue as params to recieve data that can be then used by
+# the game while it is running
+# TODO: figure out logic to transfer and recieve player names
+async def handle_server_connection(
+    player: asyncio.Queue,
+    target: asyncio.Queue,
+    ships: asyncio.Queue,
+    turn: asyncio.Queue,
+    hit: asyncio.Queue,
+):
+    print("Client started!")
+    async with websockets.connect("ws://127.0.0.1:5050/client") as server:
+        player_name = await player.get()
+        await server.send(player_name)
+        print(f"Player name sent to server {player_name}")
 
-        # this is a loop? that listens to the battleship
-        # single client connection
+        enemy_name = await server.recv()
+        print(f"Enemy name recieved from the server {enemy_name}")
+        await player.put(enemy_name)
+
+        # sending the ships coords to the server
+        ships_coords = await ships.get()
+        await server.send(ships_coords)
+        print("Sent ship coords")
+
+        # setting the initial turn message
+        # as recieved from the server
+        turn_message = await server.recv()
+        await turn.put(turn_message)
+        print(f"Turn message recieved from server: {turn_message}")
+
         while True:
-            message = json.loads(await websocket.recv())
-            print(f"Received from battleship.py: {message}")
+            # if it is the player's turn we need to now
+            # wait for target coords
+            if turn_message == "Your turn":
+                target_coords = await target.get()
+                await server.send(target_coords)
+                print("Sending target coords to server")
 
-            # forward the message to server.py
-            print(message)
-            #print(type(message))
-            #print(type(json.loads(message)))
-            await server_ws.send(json.dumps(message))
+            # message from the server telling if its
+            # the player's turn
+            turn_message = await server.recv()
+            print(f"Turn message recieved from server: {turn_message}")
+            await turn.put(turn_message)
 
-            # # wait for the reply
-            # response = await server_ws.recv()
-            # print(f"Received from server.py: {response}")
-
-            # relay the response to battleship.py
-            # await websocket.send(json.dumps(response))
-
-
-async def main():
-    # this takes to run the connection to localhost at port 5051 in which battleship.py runs
-    async with websockets.serve(handle_battleship_connection, "localhost", 5051):
-        await asyncio.Future()
-
-
-asyncio.run(main())
+            # hit coords of where the enemy player hit
+            hit_coords = await server.recv()
+            await hit.put(hit_coords)
