@@ -56,6 +56,7 @@ python3 fastAPI.py
 
 
 Then, from a different terminal, we will launch the UI and client by activating battleship.py.
+Note that you will need two instances of battleship.py to start playing, with the second one running from another terminal. 
 
 ```
 python3 battleship.py
