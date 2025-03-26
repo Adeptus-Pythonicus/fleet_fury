@@ -26,11 +26,13 @@ GRID_Y_OFFSET = (HEIGHT - (ROWS * CELL_SIZE)) // 2
 # Colors
 WHITE = (255, 255, 255)
 LIGHT_BLUE = (218, 237, 244)
-DARK_BLUE = (25, 69, 83)
+DARK_BLUE = (40, 75, 99)
 BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 GRAY = (200, 200, 200)
 BROWN = (111, 78, 55)
+DARK_BROWN = (148, 137, 121)
+PLATINUM = (217, 217, 217)
 
 # Images
 battleship_img = pg.image.load("./battleship.png")
@@ -48,7 +50,8 @@ selected_tiles_opponent = []
 
 boats = []
 
-text_font = pg.font.Font(None, 30)
+text_font = pg.font.Font("times.ttf", 30)
+small_font = pg.font.Font("times.ttf", 20)
 
 ship_placement = asyncio.Queue()
 target_coords = asyncio.Queue()
@@ -187,6 +190,56 @@ def place_boat(boat: pg.Rect):
     else:
         reset_boat(boat)
 
+def welcome_screen():
+    input_box = pg.Rect((WIDTH-100)//2, (HEIGHT-650), 100, 80)
+    color_inactive = PLATINUM
+    color_active = BLACK
+    color = color_inactive
+    active = False
+    text = ''
+
+    background_img = pg.image.load('ocean-waves-aerial-view.jpg')
+    background_img = pg.transform.scale(background_img, (WIDTH, HEIGHT))
+
+    running = True
+    while running:
+        screen.blit(background_img, (0, 0))
+        pg.draw.rect(screen, (3, 16, 24), ((WIDTH-900)//2, (HEIGHT-650)//2, 900, 650), border_radius=5)
+        pg.draw.rect(screen, (0, 67, 86), ((WIDTH-850)//2, (HEIGHT-600)//2, 850, 600), border_radius=5)
+        draw_text("WELCOME TO FLEET FURY", text_font, WHITE, (WIDTH-385)//2, (HEIGHT-500)//2)
+        draw_text("Enter a nickname to begin", small_font, GRAY, (WIDTH-900), (HEIGHT-710))
+        
+        pg.draw.line(screen, GRAY, ((WIDTH-1100), (HEIGHT-680)), ((WIDTH-500), (HEIGHT-680)), 1)
+
+        #draw_text("RULES \n rule 1", text_font, WHITE, (WIDTH-1100), (HEIGHT-700))
+
+
+        pg.draw.rect(screen, color, input_box, 2, border_radius=10)
+        txt_surface = text_font.render(text, True, WHITE)
+        screen.blit(txt_surface, (input_box.x + 5, input_box.y + 5))
+
+        pg.display.flip()
+
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                pg.quit()
+                exit()
+            if event.type == pg.MOUSEBUTTONDOWN:
+                if input_box.collidepoint(event.pos):
+                    active = not active
+                else:
+                    active = False
+                color = color_active if active else color_inactive
+            if event.type == pg.KEYDOWN:
+                if active:
+                    if event.key == pg.K_RETURN:
+                        if text.strip():
+                            running = False
+                    elif event.key == pg.K_BACKSPACE:
+                        text = text[:-1]
+                    else:
+                        text += event.unicode
+    return text.strip()
 
 async def boat_phase():
     active_boat = None
@@ -276,6 +329,7 @@ async def send_grenade_to_your_enemy_boat_phase():
 # TODO: set ship phase and game phase, fix hp bar, get orientation of boat
 async def battleship():
     global turn
+    welcome_screen()
     create_boats()
 
     # turn_message = await player_turn.get()
