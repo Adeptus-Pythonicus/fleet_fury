@@ -43,8 +43,6 @@ Once in the virtual environment, change the directory to the root of the project
 ```
 pip install -r requirements.txt
 ```
-
-
 ## Usage
 
 Testing the project is done by having
@@ -52,6 +50,10 @@ three separate terminals. Start the server by running
 ```
 python3 fastAPI.py
 ```
+
+
+![server](https://i.imgur.com/DQERGEE.png)
+
 
 Then, from a different terminal, we will launch the UI and client by activating battleship.py.
 
