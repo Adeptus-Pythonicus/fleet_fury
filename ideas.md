@@ -5,11 +5,12 @@
 [x] add numbers for grid values
 [] add healthbar
 [x] player turns
-[] hit indicator
+[] better hit indicator
 [] seperate into functions for game phases
 [] displaying player controls during ship placement
+[] Get enemy name to display
 
 # Extras
 
-[] prompt to get player name on a text box
+[x] prompt to get player name on a text box
 [] player names in color depending on side

@@ -15,17 +15,25 @@ async def client_endpoint(websocket: WebSocket):
 
     ship_coords_recieved = False
     while True:
+        # if statement to make sure we dont await for ship coords once
+        # they are received
         if not ship_coords_recieved:
             ship_coords = await websocket.receive_text()
             print(f"Ship coords received from client: {ship_coords}")
             ship_coords_recieved = True
-            if len(connection_list) == 2:
-                print("Sending initial turn message")
-                await connection_list[0].send_text("Your turn")
-                await connection_list[1].send_text("Not your turn")
+            # When ships are placed, sending initial turn message
+            # based on who connected first
+            if websocket == connection_list[0]:
+                await websocket.send_text("Your turn")
+            elif websocket == connection_list[1]:
+                await websocket.send_text("Not your turn")
 
+        # Wait for the hit message
         hit_coords = await websocket.receive_json()
         print(f"Hit coords received from client: {hit_coords}")
+        # whenever we get a hit message we tell the other
+        # player that its their turn and also send the hit
+        # coords
         for player in connection_list:
             if player != websocket:
                 await player.send_text("Your turn")
