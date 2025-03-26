@@ -363,7 +363,7 @@ async def send_grenade_to_your_enemy_boat_phase():
         )
 
         for boat in boats:
-            pg.draw.rect(screen, BROWN, boat, border_radius=10)
+            pg.draw.rect(screen, GRAY, boat, border_radius=10)
 
         pg.display.flip()
 
