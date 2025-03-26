@@ -29,10 +29,13 @@ LIGHT_BLUE = (218, 237, 244)
 DARK_BLUE = (40, 75, 99)
 BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
-GRAY = (200, 200, 200)
+GRAY = (169,169,169)
 BROWN = (111, 78, 55)
 DARK_BROWN = (148, 137, 121)
 PLATINUM = (217, 217, 217)
+VERY_DARK_BLUE = (3, 16, 24)
+DARK_TEAL = (0, 67, 89)
+MEDIUM_TEAL = (1, 104, 138)
 
 # Images
 battleship_img = pg.image.load("./battleship.png")
@@ -98,9 +101,9 @@ def draw_grid(grid, x_offset):
                 CELL_SIZE,
                 CELL_SIZE,
             )
-            color = BLUE if grid[row][col] else GRAY
+            color = BLUE if grid[row][col] else DARK_TEAL
             pg.draw.rect(screen, color, rect)
-            pg.draw.rect(screen, WHITE, rect, 1)
+            pg.draw.rect(screen, VERY_DARK_BLUE, rect, 1)
     num_y = GRID_Y_OFFSET + CELL_SIZE // 2
     for i in range(10):
         draw_text(str(i), medium_font, DARK_BLUE, x_offset - CELL_SIZE // 2, num_y)
@@ -222,8 +225,8 @@ async def welcome_screen():
     running = True
     while running:
         screen.blit(background_img, (0, 0))
-        pg.draw.rect(screen, (3, 16, 24), box_outer, border_radius=5)
-        pg.draw.rect(screen, (0, 67, 89), box_inner, border_radius=5)
+        pg.draw.rect(screen, VERY_DARK_BLUE, box_outer, border_radius=5)
+        pg.draw.rect(screen, DARK_TEAL, box_inner, border_radius=5)
         pg.draw.rect(screen, WHITE, line)
         draw_text(
             "WELCOME TO FLEET FURY",
@@ -232,12 +235,15 @@ async def welcome_screen():
             (WIDTH) // 2,
             y * 1.2,
         )
-        draw_text("Enter a nickname to begin", small_font, GRAY, (WIDTH // 2), y * 1.35)
+        draw_text("Enter a nickname to begin", small_font, PLATINUM, (WIDTH // 2), y * 1.35)
 
-        # draw_text("RULES \n rule 1", big_font, WHITE, (WIDTH - 1100), (HEIGHT - 700))
+        draw_text("RULES", big_font, WHITE, (WIDTH//2), y*2)
 
+        display_text = player_title + "|" if active else player_title
+
+        
         pg.draw.rect(screen, color, input_box, 2, border_radius=10)
-        txt_surface = big_font.render(player_title, True, WHITE)
+        txt_surface = big_font.render(display_text, True, WHITE)
         screen.blit(txt_surface, (input_box.x + 5, input_box.y + 5))
 
         pg.display.flip()
@@ -271,7 +277,7 @@ async def boat_phase():
     active_boat = None
 
     while True:
-        screen.fill(LIGHT_BLUE)
+        screen.fill(PLATINUM)
 
         draw_grid(grid1, GRID1_X_OFFSET)
         draw_grid(grid2, GRID2_X_OFFSET)
@@ -293,7 +299,7 @@ async def boat_phase():
         )
 
         for boat in boats:
-            pg.draw.rect(screen, BROWN, boat, border_radius=10)
+            pg.draw.rect(screen, GRAY, boat, border_radius=10)
 
         pg.display.flip()
 
