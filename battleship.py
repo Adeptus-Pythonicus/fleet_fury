@@ -341,7 +341,7 @@ async def send_grenade_to_your_enemy_boat_phase():
     global enemy_title
 
     while True:
-        screen.fill(LIGHT_BLUE)
+        screen.fill(PLATINUM)
 
         draw_grid(grid1, GRID1_X_OFFSET)
         draw_grid(grid2, GRID2_X_OFFSET)
