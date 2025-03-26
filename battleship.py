@@ -48,17 +48,14 @@ selected_tiles_opponent = []
 
 boats = []
 
-p1_hp = pg.Rect(
-    GRID1_X_OFFSET, GRID_Y_OFFSET + CELL_SIZE * 10.1, CELL_SIZE * 6, CELL_SIZE * 0.5
-)
-
 text_font = pg.font.Font(None, 30)
 
+ship_placement = asyncio.Queue()
 target_coords = asyncio.Queue()
 player_turn = asyncio.Queue()
 turn = False
 
-boat_coords = []
+boat_coords = {}
 
 
 def create_boats():
@@ -66,6 +63,7 @@ def create_boats():
     for _ in range(5):
         boat = pg.Rect(GRID1_X_OFFSET - CELL_SIZE * 5, boat_y, CELL_SIZE * 3, CELL_SIZE)
         boats.append(boat)
+        boat_coords.setdefault(boats.index(boat), None)
         boat_y += CELL_SIZE * 1.5
 
 
@@ -79,6 +77,7 @@ def reset_boat(boat: pg.Rect):
         boat.width,
         boat.height,
     )
+    boat_coords[boats.index(boat)] = None
 
 
 def draw_grid(grid, x_offset):
@@ -146,6 +145,7 @@ async def select_tile(grid, x_offset, pos, selected_tiles):
 # to snap blocks into place
 def place_boat(boat: pg.Rect):
     global boat_coords
+    orientation = None
 
     if (
         is_over_player_grid(boat.topleft)
@@ -156,8 +156,8 @@ def place_boat(boat: pg.Rect):
 
         # TODO: need to send this using queue
         # ship coords
-        grid_x = (x - GRID1_X_OFFSET) // CELL_SIZE
-        grid_y = (y - GRID_Y_OFFSET) // CELL_SIZE
+        grid_x = int((x - GRID1_X_OFFSET) // CELL_SIZE)
+        grid_y = int((y - GRID_Y_OFFSET) // CELL_SIZE)
 
         # calculate the cell to be placed on the screen
         col = ((x - GRID1_X_OFFSET) // CELL_SIZE) * CELL_SIZE + (
@@ -176,6 +176,13 @@ def place_boat(boat: pg.Rect):
                 return
 
         boat.center = (int(col), int(row))
+
+        if boat.height > boat.width:
+            orientation = "v"
+        else:
+            orientation = "h"
+
+        boat_coords[boats.index(boat)] = (grid_x, grid_y, orientation)
     else:
         reset_boat(boat)
 
@@ -220,11 +227,16 @@ async def battleship():
                 if event.button == 1 and active_boat is not None:
                     place_boat(boats[active_boat])
                     active_boat = None
+                    print(boat_coords)
             if event.type == pg.MOUSEMOTION:
                 if active_boat != None:
                     boats[active_boat].move_ip(event.rel)
 
-        if len(boat_coords) == 5:
+        if None not in boat_coords.values():
+            final_boat_coords = []
+            for v in boat_coords.values():
+                final_boat_coords.append(v)
+            await ship_placement.put(json.dumps(final_boat_coords))
             game_phase = True
 
     while running:
@@ -235,8 +247,6 @@ async def battleship():
 
         for boat in boats:
             pg.draw.rect(screen, BROWN, boat, border_radius=10)
-
-        pg.draw.rect(screen, BROWN, p1_hp)
 
         pg.display.flip()
 
@@ -266,7 +276,7 @@ async def battleship():
 async def main():
     battleship_task = asyncio.create_task(battleship())
     server_connection_task = asyncio.create_task(
-        client.handle_server_connection(target_coords, 5, player_turn)
+        client.handle_server_connection(target_coords, ship_placement, player_turn)
     )
 
     await asyncio.gather(battleship_task, server_connection_task)
