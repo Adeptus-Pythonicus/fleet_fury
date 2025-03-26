@@ -187,21 +187,10 @@ def place_boat(boat: pg.Rect):
         reset_boat(boat)
 
 
-# TODO: set ship phase and game phase, fix hp bar, get orientation of boat
-async def battleship():
-    global turn
+async def boat_phase():
     active_boat = None
-    create_boats()
-    game_phase = False
-    running = True
 
-    turn_message = await player_turn.get()
-    if turn_message == "Your turn":
-        turn = True
-    else:
-        turn = False
-
-    while not game_phase:
+    while True:
         screen.fill(LIGHT_BLUE)
 
         draw_grid(grid1, GRID1_X_OFFSET)
@@ -237,9 +226,13 @@ async def battleship():
             for v in boat_coords.values():
                 final_boat_coords.append(v)
             await ship_placement.put(json.dumps(final_boat_coords))
-            game_phase = True
+            return
 
-    while running:
+
+async def send_grenade_to_your_enemy_boat_phase():
+    global turn
+
+    while True:
         screen.fill(LIGHT_BLUE)
 
         draw_grid(grid1, GRID1_X_OFFSET)
@@ -266,9 +259,22 @@ async def battleship():
                     )
 
             if event.type == pg.QUIT:
-                running = False
+                return
 
         await asyncio.sleep(0.01)
+
+
+# TODO: set ship phase and game phase, fix hp bar, get orientation of boat
+async def battleship():
+    global turn
+    create_boats()
+
+    turn_message = await player_turn.get()
+    if turn_message == "Your turn":
+        turn = True
+
+    await boat_phase()
+    await send_grenade_to_your_enemy_boat_phase()
 
     pg.quit()
 
