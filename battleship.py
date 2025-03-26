@@ -82,7 +82,7 @@ def reset_boat(boat: pg.Rect):
     boat.height = int(CELL_SIZE)
     boat.update(
         GRID1_X_OFFSET - CELL_SIZE * 5,
-        (GRID_Y_OFFSET + (boat_index * (CELL_SIZE * 1.5))),
+        (GRID_Y_OFFSET + ((boat_index + 1) * (CELL_SIZE * 1.5))),
         boat.width,
         boat.height,
     )
