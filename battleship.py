@@ -53,6 +53,7 @@ text_font = pg.font.Font(None, 30)
 ship_placement = asyncio.Queue()
 target_coords = asyncio.Queue()
 player_turn = asyncio.Queue()
+hit_coords = asyncio.Queue()
 turn = False
 
 boat_coords = {}
@@ -220,6 +221,8 @@ async def boat_phase():
             if event.type == pg.MOUSEMOTION:
                 if active_boat != None:
                     boats[active_boat].move_ip(event.rel)
+            if event.type == pg.QUIT:
+                pg.quit()
 
         if None not in boat_coords.values():
             final_boat_coords = []
@@ -231,6 +234,7 @@ async def boat_phase():
 
 async def send_grenade_to_your_enemy_boat_phase():
     global turn
+    print("Pygame: in game phase now")
 
     while True:
         screen.fill(LIGHT_BLUE)
@@ -248,6 +252,11 @@ async def send_grenade_to_your_enemy_boat_phase():
                 turn_message = await asyncio.wait_for(player_turn.get(), 0.1)
                 if turn_message == "Your turn":
                     turn = True
+                hit = await asyncio.wait_for(hit_coords.get(), 0.1)
+                hit = json.loads(hit)
+                x = hit[0]
+                y = hit[1]
+                grid1[x][y] = True
             except asyncio.TimeoutError:
                 pass
 
@@ -269,9 +278,9 @@ async def battleship():
     global turn
     create_boats()
 
-    turn_message = await player_turn.get()
-    if turn_message == "Your turn":
-        turn = True
+    # turn_message = await player_turn.get()
+    # if turn_message == "Your turn":
+    #     turn = True
 
     await boat_phase()
     await send_grenade_to_your_enemy_boat_phase()
@@ -282,7 +291,9 @@ async def battleship():
 async def main():
     battleship_task = asyncio.create_task(battleship())
     server_connection_task = asyncio.create_task(
-        client.handle_server_connection(target_coords, ship_placement, player_turn)
+        client.handle_server_connection(
+            target_coords, ship_placement, player_turn, hit_coords
+        )
     )
 
     await asyncio.gather(battleship_task, server_connection_task)
