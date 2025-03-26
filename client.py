@@ -7,6 +7,7 @@ import websockets
 # the game while it is running
 # TODO: figure out logic to transfer and recieve player names
 async def handle_server_connection(
+    player: asyncio.Queue,
     target: asyncio.Queue,
     ships: asyncio.Queue,
     turn: asyncio.Queue,
@@ -14,6 +15,14 @@ async def handle_server_connection(
 ):
     print("Client started!")
     async with websockets.connect("ws://127.0.0.1:5050/client") as server:
+        player_name = await player.get()
+        await server.send(player_name)
+        print(f"Player name sent to server {player_name}")
+
+        enemy_name = await server.recv()
+        print(f"Enemy name recieved from the server {enemy_name}")
+        await player.put(enemy_name)
+
         # sending the ships coords to the server
         ships_coords = await ships.get()
         await server.send(ships_coords)

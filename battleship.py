@@ -54,6 +54,7 @@ big_font = pg.font.Font("times.ttf", 30)
 medium_font = pg.font.Font("times.ttf", 25)
 small_font = pg.font.Font("times.ttf", 20)
 
+player_name = asyncio.Queue()
 ship_placement = asyncio.Queue()
 target_coords = asyncio.Queue()
 player_turn = asyncio.Queue()
@@ -61,6 +62,7 @@ hit_coords = asyncio.Queue()
 
 turn = False
 player_title = ""
+enemy_title = ""
 
 boat_coords = {}
 
@@ -243,7 +245,6 @@ async def welcome_screen():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
-                exit()
             if event.type == pg.MOUSEBUTTONDOWN:
                 if input_box.collidepoint(event.pos):
                     active = not active
@@ -254,6 +255,7 @@ async def welcome_screen():
                 if active:
                     if event.key == pg.K_RETURN:
                         if player_title.strip():
+                            await player_name.put(player_title)
                             running = False
                     elif event.key == pg.K_BACKSPACE:
                         player_title = player_title[:-1]
@@ -265,6 +267,7 @@ async def welcome_screen():
 
 # TODO: Get enemy name to display
 async def boat_phase():
+    global enemy_title
     active_boat = None
 
     while True:
@@ -278,6 +281,14 @@ async def boat_phase():
             big_font,
             BLACK,
             GRID1_X_OFFSET + GRID_WIDTH // 2,
+            GRID_Y_OFFSET // 2,
+        )
+
+        draw_text(
+            enemy_title,
+            big_font,
+            BLACK,
+            GRID2_X_OFFSET + GRID_WIDTH // 2,
             GRID_Y_OFFSET // 2,
         )
 
@@ -321,7 +332,7 @@ async def boat_phase():
 # TODO: fix hp bar and figure out how to better diplay hit marks from the enemy
 async def send_grenade_to_your_enemy_boat_phase():
     global turn
-    print("Pygame: in game phase now")
+    global enemy_title
 
     while True:
         screen.fill(LIGHT_BLUE)
@@ -334,6 +345,14 @@ async def send_grenade_to_your_enemy_boat_phase():
             big_font,
             BLACK,
             GRID1_X_OFFSET + GRID_WIDTH // 2,
+            GRID_Y_OFFSET // 2,
+        )
+
+        draw_text(
+            enemy_title,
+            big_font,
+            BLACK,
+            GRID2_X_OFFSET + GRID_WIDTH // 2,
             GRID_Y_OFFSET // 2,
         )
 
@@ -371,10 +390,14 @@ async def send_grenade_to_your_enemy_boat_phase():
 
 async def battleship():
     global turn
+    global enemy_title
 
     create_boats()
 
     await welcome_screen()
+
+    enemy_title = await player_name.get()
+
     await boat_phase()
     await send_grenade_to_your_enemy_boat_phase()
 
@@ -385,6 +408,7 @@ async def main():
     battleship_task = asyncio.create_task(battleship())
     server_connection_task = asyncio.create_task(
         client.handle_server_connection(
+            player_name,
             target_coords,
             ship_placement,
             player_turn,
