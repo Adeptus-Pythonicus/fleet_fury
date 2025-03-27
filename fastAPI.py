@@ -28,7 +28,7 @@ async def client_endpoint(websocket: WebSocket):
         # if statement to make sure we dont await for ship coords once
         # they are received
         if not ship_coords_recieved:
-            ship_coords = await websocket.receive_text()
+            ship_coords = await websocket.receive_json()
             print(f"Ship coords received from client: {ship_coords}")
             ship_coords_recieved = True
             # When ships are placed, sending initial turn message
