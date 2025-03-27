@@ -56,6 +56,9 @@ python3 fastAPI.py
 
 
 Then, from a different terminal, we will launch the UI and client by activating battleship.py.
+
+*IMPORTANT*:
+
 Note that you will need two instances of battleship.py to start playing, with the second one running from another terminal. 
 
 ```
@@ -67,6 +70,10 @@ python3 battleship.py
 WIP: The Player and Opponent's Grids
 ![grids](https://i.imgur.com/TRVRX4x.png)
 
+### Scope Status
+
+Since our planning phase at the beginning weeks of the semester, we have decided on a simple architecture and our modules interface with each other
+through lists or tuples. This has thankfully worked well and resulted in a stable project where we didn't deviate from our original scope and plan.
 
 ## Credits
 
