@@ -170,7 +170,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-#pyenv
 bin/
 lib64
 pyvenv.cfg
+include/
