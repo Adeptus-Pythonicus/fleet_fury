@@ -29,7 +29,7 @@ LIGHT_BLUE = (218, 237, 244)
 DARK_BLUE = (40, 75, 99)
 BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
-GRAY = (169,169,169)
+GRAY = (169, 169, 169)
 BROWN = (111, 78, 55)
 DARK_BROWN = (148, 137, 121)
 PLATINUM = (217, 217, 217)
@@ -68,6 +68,8 @@ player_title = ""
 enemy_title = ""
 
 boat_coords = {}
+
+clock = pg.time.Clock()
 
 
 def create_boats():
@@ -235,13 +237,14 @@ async def welcome_screen():
             (WIDTH) // 2,
             y * 1.2,
         )
-        draw_text("Enter a nickname to begin", small_font, PLATINUM, (WIDTH // 2), y * 1.35)
+        draw_text(
+            "Enter a nickname to begin", small_font, PLATINUM, (WIDTH // 2), y * 1.35
+        )
 
-        draw_text("RULES", big_font, WHITE, (WIDTH//2), y*2)
+        draw_text("RULES", big_font, WHITE, (WIDTH // 2), y * 2)
 
         display_text = player_title + "|" if active else player_title
 
-        
         pg.draw.rect(screen, color, input_box, 2, border_radius=10)
         txt_surface = big_font.render(display_text, True, WHITE)
         screen.blit(txt_surface, (input_box.x + 5, input_box.y + 5))
@@ -267,6 +270,8 @@ async def welcome_screen():
                         player_title = player_title[:-1]
                     elif len(player_title) < 15:
                         player_title += event.unicode
+
+        clock.tick(60)
 
         await asyncio.sleep(0)
 
@@ -332,6 +337,8 @@ async def boat_phase():
             await ship_placement.put(json.dumps(final_boat_coords))
             return
 
+        clock.tick(60)
+
         await asyncio.sleep(0)
 
 
@@ -373,10 +380,7 @@ async def send_grenade_to_your_enemy_boat_phase():
                 if turn_message == "Your turn":
                     turn = True
                 hit = await asyncio.wait_for(hit_coords.get(), 0.1)
-                print(hit)
-                hit = json.loads(hit)
-                x = hit[0]
-                y = hit[1]
+                x, y = json.loads(hit)
                 grid1[x][y] = True
             except asyncio.TimeoutError:
                 pass
@@ -390,6 +394,8 @@ async def send_grenade_to_your_enemy_boat_phase():
 
             if event.type == pg.QUIT:
                 return
+
+        clock.tick(60)
 
         await asyncio.sleep(0)
 
