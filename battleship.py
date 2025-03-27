@@ -227,17 +227,13 @@ async def welcome_screen():
     logo_img = pg.image.load("light_logo.png")
     logo_img = pg.transform.scale(logo_img, (123, 103))
 
-    click_img = pg.image.load("right-click.png")
-    click_img = pg.transform.scale(click_img, (60, 60))
-
     running = True
     while running:
         screen.blit(background_img, (0, 0))
-        screen.blit(logo_img, (0,0))
+        screen.blit(logo_img, (0, 0))
         pg.draw.rect(screen, VERY_DARK_BLUE, box_outer, border_radius=5)
         pg.draw.rect(screen, DARK_TEAL, box_inner, border_radius=5)
         pg.draw.rect(screen, WHITE, line)
-        screen.blit(click_img, (WIDTH//2 + 150, HEIGHT//2))
         draw_text(
             "WELCOME TO FLEET FURY",
             big_font,
@@ -249,7 +245,7 @@ async def welcome_screen():
             "Enter a nickname to begin", small_font, PLATINUM, (WIDTH // 2), y * 1.35
         )
 
-        draw_text("RULES:", big_font, WHITE, (WIDTH//2), y*2.2)
+        draw_text("RULES:", big_font, WHITE, (WIDTH // 2), y * 2.2)
 
         display_text = player_title + "|" if active else player_title
 
@@ -289,11 +285,29 @@ async def boat_phase():
     global enemy_title
     active_boat = None
 
+    click_img = pg.image.load("right-click.png")
+    click_img = pg.transform.scale(click_img, (60, 60))
+
     while True:
         screen.fill(PLATINUM)
 
         draw_grid(grid1, GRID1_X_OFFSET)
         draw_grid(grid2, GRID2_X_OFFSET)
+
+        screen.blit(
+            click_img,
+            (
+                WIDTH - GRID1_X_OFFSET + 75 - click_img.get_width() // 2,
+                HEIGHT // 2 - click_img.get_height() // 2,
+            ),
+        )
+        draw_text(
+            "Rotate",
+            big_font,
+            BLACK,
+            WIDTH - GRID1_X_OFFSET // 2,
+            HEIGHT // 2,
+        )
 
         draw_text(
             player_title,
