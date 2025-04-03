@@ -39,7 +39,7 @@ class Player(GameState):
                     print(f"Placing 'x' at ({r},{col})")  # Debug statement
                     self.player_grid[r][col] = "x"          
     
-    #Takes shot as tuple for row and col and logic behind shot
+    #Takes shot as list for row and col and logic behind shot
     def take_shot(self,shot: list) -> bool: 
         shot_row, shot_col = shot
 
