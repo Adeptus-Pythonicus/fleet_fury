@@ -15,6 +15,14 @@ class WindModifier():
         # [wind speed, direction (in polar coordinate)]
         self.wind_values = []
 
+    def cyclic_modulus(self, x, min_val=0, max_val=9):
+        '''
+        So if the wind shifts the impact point off the playable grid,
+        it rolls over back from the other side of the grid.
+        '''
+        range_size = max_val - min_val + 1
+        return ((x - min_val) % range_size) + min_val
+
     def determine_shift(self, coords: List):
         logging.info(f'Unshifted coords: {coords}')
 
@@ -41,25 +49,25 @@ class WindModifier():
                 dx, dy = 1, 0
             case x if 22.5 <= x < 67.5:
                 logging.info(f'Wind blows North East')
-                dx, dy = 1, 1
+                dx, dy = 1, -1
             case x if 67.5 <= x < 112.5:
                 logging.info(f'Wind blows North')
-                dx, dy = 0, 1
+                dx, dy = 0, -1
             case x if 112.5 <= x < 157.5:
                 logging.info(f'Wind blows North West')
-                dx, dy = -1, 1
+                dx, dy = -1, -1
             case x if 157.5 <= x < 202.5:
                 logging.info(f'Wind blows West')
                 dx, dy = -1, 0
             case x if 202.5 <= x < 247.5:
                 logging.info(f'Wind blows South West')
-                dx, dy = -1, -1
+                dx, dy = -1, 1
             case x if 247.5 <= x < 292.5:
                 logging.info(f'Wind blows South')
-                dx, dy = 0, -1
+                dx, dy = 0, 1
             case x if 292.5 <= x < 337.5:
                 logging.info(f'Wind blows South East')
-                dx, dy = 1, -1
+                dx, dy = 1, 1
             case x if 337.5 <= x < 360:
                 logging.info(f'Wind blows East')
                 dx, dy = 1, 0
@@ -70,9 +78,8 @@ class WindModifier():
         coords[0] += dx * multiplier
         coords[1] += dy * multiplier
 
-        # Clamp to [0, 10]
-        coords[0] = max(0, min(10, coords[0]))
-        coords[1] = max(0, min(10, coords[1]))
+        coords[0] = self.cyclic_modulus(coords[0])
+        coords[1] = self.cyclic_modulus(coords[1])
 
         logging.info(f'Shifted coords: {coords}')
         return coords
@@ -124,8 +131,12 @@ class WindModifier():
                 '''
                 An exception was raised and we were not given data.
                 '''
-                logging.info(f'Substituing wind values.')
-                self.wind_values = [random.randrange(0, 40), random.randrange(0,360)]
+                logging.info(f'Network error. Wind disabled for now.')
+                self.wind_values = [0, 0]
+
+                #logging.info(f'Network error. Random wind values provided.')
+                #self.wind_values = [random.randrange(0, 40), random.randrange(0,360)]
+
             else:
                 self.wind_values = [current_windspeed, self.wind_direction_polar(current_winddirection)]
 
@@ -137,4 +148,7 @@ if __name__ == '__main__':
     x.get_weather_data()
     print(x.wind_values)
 
-    x.determine_shift([2,3])
+    x.determine_shift([0,0])
+    x.determine_shift([9,9])
+    x.determine_shift([0,9])
+    x.determine_shift([9,0])
