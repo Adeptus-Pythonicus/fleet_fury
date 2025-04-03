@@ -157,8 +157,7 @@ if __name__ == '__main__':
     x = WindModifier()
     x.get_weather_data()
     print(x.wind_values)
-
-    x.determine_shift([0,0])
+x.determine_shift([0,0])
     x.determine_shift([9,9])
     x.determine_shift([0,9])
     x.determine_shift([9,0])
