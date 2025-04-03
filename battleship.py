@@ -4,6 +4,7 @@ import json
 import pygame as pg
 
 import client
+from weather import WindModifier
 
 # Initialize pygame
 pg.init()
@@ -68,6 +69,9 @@ player_title = ""
 enemy_title = ""
 
 boat_coords = {}
+
+weather_data = WindModifier()
+weather_data.get_weather_data()
 
 clock = pg.time.Clock()
 
@@ -143,6 +147,7 @@ async def select_tile(grid, x_offset, pos, selected_tiles):
     # calculate the cell index
     col = int((x - x_offset) // CELL_SIZE)
     row = int((y - GRID_Y_OFFSET) // CELL_SIZE)
+    row, col = weather_data.determine_shift([row, col])
 
     if 0 <= col < COLS and 0 <= row < ROWS:
         if not grid[row][col]:

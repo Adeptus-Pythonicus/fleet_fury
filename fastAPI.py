@@ -89,13 +89,6 @@ async def client_endpoint(websocket: WebSocket):
                     message = [hit_coords, "hit" if hit_result else "miss"]
                     await player.send_json(message)
 
-            # # Update turn state
-            # if not hit_result:
-            #     current_turn = 1 - current_turn
-            #     await websocket.send_text("Not your turn")
-            # else:
-            #     await websocket.send_text("Your turn")
-
     except Exception as e:
         print(f"Connection error: {e}")
 
