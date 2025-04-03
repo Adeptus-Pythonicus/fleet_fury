@@ -12,6 +12,7 @@ class Player(GameState):
     def __init__(self):
         super().__init__() # Call GameState constructor
         self.player_grid = [[0] * self.cols for _ in range(self.rows)] # Fill all cols and rows with 0's 
+        self.player_health = 15
 
     # Print grid out
     def PrintGrid(self) -> list: 
@@ -37,9 +38,9 @@ class Player(GameState):
                 row = row - 1 #adjustment for center ship
                 for r in range(row, row + ship_rows):   # Place the ship
                     print(f"Placing 'x' at ({r},{col})")  # Debug statement
-                    self.player_grid[r][col] = "x"          
+                    self.player_grid[r][col] = "x"    
     
-    #Takes shot as tuple for row and col and logic behind shot
+    #Takes shot as list for row and col and logic behind shot
     def take_shot(self,shot: list) -> bool: 
         shot_row, shot_col = shot
 
@@ -54,20 +55,47 @@ class Player(GameState):
         if self.player_grid [shot_row][shot_col] == 'x': # Successful hit
             print("Hit!")
             self.player_grid [shot_row][shot_col] = 'H'
+            self.player_health -= 1
             return 1
         
         else: # Miss
             print("Miss!")
             self.player_grid [shot_row][shot_col] = 'M'
             return 0
+        
+    #make funciton to dertermine win state between 2 players
+    def check_winner(self) -> bool:
+        if self.player_health == 0:
+            print("You lose")
+            return 0
+        else:
+            print("Still alive")
+            return 1
 
 if __name__ == '__main__': # This main is used for testing and debugging
-    player = Player() 
-    player.place_ship([[2, 3, 'h'], [4, 5, 'v'], [8, 6, 'h']])
-    player.PrintGrid()
-    player.take_shot([2, 3])
-    player.PrintGrid()
-    player.take_shot([4, 4])
-    player.PrintGrid()
-    player.take_shot([2, 3])
-    player.PrintGrid()
+    player1 = Player() 
+    player2 = Player()
+    player1.place_ship([[2, 3, 'h'], [4, 8, 'v'], [8, 6, 'h'], [7, 6, 'h'], [6, 6, 'h']])
+    player1.PrintGrid()
+    player1.take_shot([2, 3])
+    player1.PrintGrid()
+    player1.take_shot([4, 4])
+    player1.PrintGrid()
+    player1.take_shot([2, 3])
+    player1.PrintGrid()
+    player1.take_shot([2, 2])
+    player1.take_shot([2, 4])
+    player1.take_shot([3, 8])
+    player1.take_shot([4, 8])
+    player1.take_shot([5, 8])
+    player1.take_shot([8, 5])
+    player1.take_shot([8, 6])
+    player1.take_shot([8, 7])
+    player1.take_shot([7, 5])
+    player1.take_shot([7, 6])
+    player1.take_shot([7, 7])
+    player1.take_shot([6, 5])
+    player1.take_shot([6, 6])
+    player1.take_shot([6, 7])
+    player1.PrintGrid()
+    player1.check_winner()
