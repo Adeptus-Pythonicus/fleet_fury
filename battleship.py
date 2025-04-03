@@ -168,8 +168,8 @@ def place_boat(boat: pg.Rect):
     ):
         x, y = boat.center
 
-        grid_x = int((x - GRID1_X_OFFSET) // CELL_SIZE)
-        grid_y = int((y - GRID_Y_OFFSET) // CELL_SIZE)
+        grid_col = int((x - GRID1_X_OFFSET) // CELL_SIZE)
+        grid_row = int((y - GRID_Y_OFFSET) // CELL_SIZE)
 
         # calculate the cell to be placed on the screen
         col = ((x - GRID1_X_OFFSET) // CELL_SIZE) * CELL_SIZE + (
@@ -194,7 +194,7 @@ def place_boat(boat: pg.Rect):
         else:
             orientation = "h"
 
-        boat_coords[boats.index(boat)] = (grid_x, grid_y, orientation)
+        boat_coords[boats.index(boat)] = (grid_row, grid_col, orientation)
     else:
         reset_boat(boat)
 
@@ -402,8 +402,8 @@ async def send_grenade_to_your_enemy_boat_phase():
                 if turn_message == "Your turn":
                     turn = True
                 hit = await asyncio.wait_for(hit_coords.get(), 0.1)
-                x, y = json.loads(hit)
-                grid1[x][y] = True
+                row, col = list(json.loads(hit))
+                grid1[row][col] = True
             except asyncio.TimeoutError:
                 pass
 
