@@ -15,6 +15,12 @@ At its core, the game operates on a client-server architecture. The server, init
 **battleship.py** handles the display of UI elements and imports the client code for establishing a connection to the server.
 
 Every message sent to the server is relayed to **gamelogic.py**, which manages the game state and keeps tracks of the clients' ship placement and health.
+=======
+# fleet_fury
+
+Fleety Fury is a Python-based Battleship game that utilizes websockets as
+our project for CSCI 331 Object Oriented Programming course.
+The codebase features code for the client, client-side UI, the server, and the game logic.
 
 
 
@@ -36,6 +42,7 @@ python -m venv virtual_environment_name
 
 Activate the virtual environment prior to installing the required modules
 ```
+<<<<<<< HEAD
 source virtual_environment_name/bin/activate    
 ```
 
@@ -82,3 +89,6 @@ Saksham
 Ulrik
 Yulia
 Johann
+=======
+source virtual_environment_name/bin/activate
+```
