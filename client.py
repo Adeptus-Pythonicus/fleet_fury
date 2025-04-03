@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import websockets
 
@@ -49,5 +50,9 @@ async def handle_server_connection(
             await turn.put(turn_message)
 
             # hit coords of where the enemy player hit
-            hit_coords = await server.recv()
+            hit_message = await server.recv()
+            hit_message = json.loads(hit_message)
+            hit_coords = json.dumps(hit_message[0])
             await hit.put(hit_coords)
+
+            print(f"Hit or miss: {hit_message[1]}")
