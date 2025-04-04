@@ -45,6 +45,12 @@ battleship_img = pg.image.load("./battleship.png")
 screen = pg.display.set_mode((WIDTH, HEIGHT))
 pg.display.set_caption("BATTLESHIP")
 
+boat_img = pg.image.load("./ship_medium_body.png")
+boat_img = pg.transform.scale(boat_img, (CELL_SIZE * 3, CELL_SIZE))
+
+water_img = pg.image.load("./water_tile.png")
+water_img = pg.transform.scale(boat_img, (CELL_SIZE * 3, CELL_SIZE))
+
 # Grids stored
 grid1 = [[False for _ in range(COLS)] for _ in range(ROWS)]
 grid2 = [[False for _ in range(COLS)] for _ in range(ROWS)]
@@ -331,7 +337,7 @@ async def boat_phase():
         )
 
         for boat in boats:
-            pg.draw.rect(screen, GRAY, boat, border_radius=10)
+            screen.blit(boat_img, boat)
 
         pg.display.flip()
 
@@ -342,10 +348,9 @@ async def boat_phase():
                         if boat.collidepoint(event.pos):
                             active_boat = num
                 elif event.button == 3 and active_boat is not None:
-                    boats[active_boat].width, boats[active_boat].height = (
-                        boats[active_boat].height,
-                        boats[active_boat].width,
-                    )
+                    print("help me")
+                    #boats[active_boat] = pg.transform.rotate(boats[active_boat], 90)
+                    # rotate
             if event.type == pg.MOUSEBUTTONUP:
                 if event.button == 1 and active_boat is not None:
                     place_boat(boats[active_boat])
@@ -397,7 +402,7 @@ async def send_grenade_to_your_enemy_boat_phase():
         )
 
         for boat in boats:
-            pg.draw.rect(screen, GRAY, boat, border_radius=10)
+            screen.blit(boat_img, boat)
 
         pg.display.flip()
 
