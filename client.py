@@ -1,33 +1,34 @@
-import websockets
 import asyncio
 import json
 
-async def handle_battleship_connection(websocket):
-    #this is to connect to /client at port 5050
-    async with websockets.connect("ws://127.0.0.1:5050/client") as server_ws:
+import websockets
 
-        #this is a loop? that listens to the battleship
-        #single client connection
-        async for message in websocket:
-            print(f"Received from battleship.py: {message}")
 
-            #forward the message to server.py
-            await server_ws.send(json.dumps(message))
-            #wait for the reply
-            response = await server_ws.recv()
-            print(f"Received from server.py: {response}")
+# Asyncio queue as params to recieve data that can be then used by
+# the game while it is running
+# TODO: figure out logic to transfer and recieve player names
+async def handle_server_connection(
+    player: asyncio.Queue,
+    target: asyncio.Queue,
+    ships: asyncio.Queue,
+    turn: asyncio.Queue,
+    hit: asyncio.Queue,
+):
+    print("Client started!")
+    async with websockets.connect("ws://127.0.0.1:5050/client") as server:
+        player_name = await player.get()
+        await server.send(player_name)
+        print(f"Player name sent to server {player_name}")
 
-            #relay the response to battleship.py
-            await websocket.send(json.dumps(response))
+        enemy_name = await server.recv()
+        print(f"Enemy name recieved from the server {enemy_name}")
+        await player.put(enemy_name)
 
-async def main():
-    #this takes to run the connection to localhost at port 5051 in which battleship.py runs
-    async with websockets.serve(handle_battleship_connection, "localhost", 5051):
-        await asyncio.Future()
+        # sending the ships coords to the server
+        ships_coords = await ships.get()
+        await server.send(ships_coords)
+        print("Sent ship coords")
 
-<<<<<<< Updated upstream
-asyncio.run(main())
-=======
         # setting the initial turn message
         # as recieved from the server
         turn_message = await server.recv()
@@ -59,4 +60,3 @@ asyncio.run(main())
             await hit.put(hit_coords)
 
             print(f"Hit or miss: {hit_message[1]} | Player health: {hit_message[2]}")
->>>>>>> Stashed changes
