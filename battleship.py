@@ -39,6 +39,9 @@ DARK_TEAL = (22, 44, 61)
 MEDIUM_TEAL = (1, 104, 138)
 OUTERBOX = (7, 26, 52)
 INNERBOX = (35, 60, 93)
+RED = (52, 7, 7)
+GREEN = (12, 82, 7)
+YELLOW = (255, 255, 0)
 
 # Images
 battleship_img = pg.image.load("./battleship.png")
@@ -273,17 +276,6 @@ async def welcome_screen():
         pg.draw.rect(screen, WHITE, line)
 
         draw_text(
-            str("Wind direction: " + weather_data.string_direction),
-            big_font,
-            WHITE,
-            50,
-            100,
-        )
-        draw_text(
-            "Wind speed: " + str(weather_data.wind_values[0]), big_font, WHITE, 100, 150
-        )
-
-        draw_text(
             "WELCOME TO FLEET FURY",
             big_font,
             WHITE,
@@ -441,19 +433,22 @@ async def send_grenade_to_your_enemy_boat_phase():
     background_img = pg.image.load("sea_storm.jpg")
     background_img = pg.transform.scale(background_img, (WIDTH, HEIGHT))
 
+
     while True:
         screen.blit(background_img, (0, 0))
+        hp_value=15
+        hp_rect = pg.Rect(GRID1_X_OFFSET, GRID_Y_OFFSET + (CELL_SIZE*10.1), CELL_SIZE * (0.6 * hp_value), CELL_SIZE * 0.3)
 
         draw_text(
             str("Wind direction: " + weather_data.string_direction),
-            big_font,
+            small_font,
             WHITE,
-            100,
-            100,
+            (WIDTH - GRID1_X_OFFSET // 2) - 30,
+            GRID_Y_OFFSET + 30
         )
+
         draw_text(
-            "Wind speed: " + str(weather_data.wind_values[0]), big_font, WHITE, 100, 150
-        )
+            ("Wind speed: " + str(weather_data.wind_values[0]) + " km/h"), small_font, WHITE, (WIDTH - GRID1_X_OFFSET // 2) - 30, GRID_Y_OFFSET + 10)
 
         draw_water_overlay(GRID1_X_OFFSET)
         draw_water_overlay(GRID2_X_OFFSET)
@@ -479,6 +474,13 @@ async def send_grenade_to_your_enemy_boat_phase():
 
         draw_grid(grid1, GRID1_X_OFFSET)
         draw_grid(grid2, GRID2_X_OFFSET)
+
+        if hp_value > 10:
+            pg.draw.rect(screen, GREEN, hp_rect, border_radius=5)
+        elif hp_value > 5 and hp_value < 10:
+            pg.draw.rect(screen, YELLOW, hp_rect, border_radius=5)
+        else:
+            pg.draw.rect(screen, RED, hp_rect, border_radius=5)
 
         pg.display.flip()
 
