@@ -42,6 +42,7 @@ INNERBOX = (35, 60, 93)
 RED = (52, 7, 7)
 GREEN = (12, 82, 7)
 YELLOW = (255, 255, 0)
+ORANGE = (255,140,0)
 
 # Images
 battleship_img = pg.image.load("./battleship.png")
@@ -247,7 +248,7 @@ async def welcome_screen():
 
     _, y = box_inner.midtop
 
-    input_box = pg.Rect(0, 0, 300, 60)
+    input_box = pg.Rect(0, 0, 250, 50)
     input_box.center = (WIDTH // 2, int(y * 1.65))
     start_button = pg.Rect(0, 0, 180, 60)
     start_button.center = (WIDTH // 2, int(y * 3.125))
@@ -353,20 +354,20 @@ async def boat_phase():
         draw_water_overlay(GRID1_X_OFFSET)
         draw_water_overlay(GRID2_X_OFFSET)
 
-        screen.blit(
-            click_img,
-            (
-                WIDTH - GRID1_X_OFFSET + 75 - click_img.get_width() // 2,
-                HEIGHT // 2 - click_img.get_height() // 2,
-            ),
-        )
-        draw_text(
-            "Rotate",
-            big_font,
-            WHITE,
-            WIDTH - GRID1_X_OFFSET // 2,
-            HEIGHT // 2,
-        )
+        # screen.blit(
+        #     click_img,
+        #     (
+        #         WIDTH - GRID1_X_OFFSET + 75 - click_img.get_width() // 2,
+        #         HEIGHT // 2 - click_img.get_height() // 2,
+        #     ),
+        # )
+        # draw_text(
+        #     "Rotate",
+        #     big_font,
+        #     WHITE,
+        #     WIDTH - GRID1_X_OFFSET // 2,
+        #     HEIGHT // 2,
+        # )
 
         draw_text(
             player_title,
@@ -436,14 +437,14 @@ async def send_grenade_to_your_enemy_boat_phase():
 
     while True:
         screen.blit(background_img, (0, 0))
-        hp_value=15
-        hp_rect = pg.Rect(GRID1_X_OFFSET, GRID_Y_OFFSET + (CELL_SIZE*10.1), CELL_SIZE * (0.6 * hp_value), CELL_SIZE * 0.3)
+        hp_value=4
+        hp_rect = pg.Rect(GRID1_X_OFFSET, GRID_Y_OFFSET + (CELL_SIZE*10.1), CELL_SIZE * (0.6666 * hp_value), CELL_SIZE * 0.3)
 
         draw_text(
             str("Wind direction: " + weather_data.string_direction),
             small_font,
             WHITE,
-            (WIDTH - GRID1_X_OFFSET // 2) - 30,
+            (WIDTH - GRID1_X_OFFSET // 2) - 32,
             GRID_Y_OFFSET + 30
         )
 
@@ -476,11 +477,14 @@ async def send_grenade_to_your_enemy_boat_phase():
         draw_grid(grid2, GRID2_X_OFFSET)
 
         if hp_value > 10:
-            pg.draw.rect(screen, GREEN, hp_rect, border_radius=5)
-        elif hp_value > 5 and hp_value < 10:
-            pg.draw.rect(screen, YELLOW, hp_rect, border_radius=5)
+            pg.draw.rect(screen, GREEN, hp_rect, border_radius=3)
+        elif hp_value < 10 and hp_value > 6:
+            pg.draw.rect(screen, YELLOW, hp_rect, border_radius=3)
+        elif hp_value < 7 and hp_value > 3:
+            pg.draw.rect(screen, ORANGE, hp_rect, border_radius=3)
         else:
-            pg.draw.rect(screen, RED, hp_rect, border_radius=5)
+            pg.draw.rect(screen, RED, hp_rect, border_radius=3)
+
 
         pg.display.flip()
 
