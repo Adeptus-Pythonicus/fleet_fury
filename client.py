@@ -13,6 +13,8 @@ async def handle_server_connection(
     ships: asyncio.Queue,
     turn: asyncio.Queue,
     hit: asyncio.Queue,
+    health: asyncio.Queue,
+    winner: asyncio.Queue,
 ):
     print("Client started!")
     async with websockets.connect("ws://127.0.0.1:5050/client") as server:
@@ -43,6 +45,10 @@ async def handle_server_connection(
                 await server.send(target_coords)
                 print("Sending target coords to server")
 
+            winner_message = await server.recv()
+            print(f"Winner message from server: {winner_message}")
+            await winner.put(winner_message)
+
             # message from the server telling if its
             # the player's turn
             turn_message = await server.recv()
@@ -50,9 +56,14 @@ async def handle_server_connection(
             await turn.put(turn_message)
 
             # hit coords of where the enemy player hit
+            print("Recieving hit message from the server")
             hit_message = await server.recv()
+            print(f"Hit message: {hit_message}")
             hit_message = json.loads(hit_message)
             hit_coords = json.dumps(hit_message[0])
             await hit.put(hit_coords)
+
+            health_value = json.dumps(hit_message[2])
+            await health.put(health_value)
 
             print(f"Hit or miss: {hit_message[1]}")

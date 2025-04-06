@@ -75,6 +75,7 @@ class Player(GameState):
 if __name__ == '__main__': # This main is used for testing and debugging
     player1 = Player() 
     player2 = Player()
+    #checking and debuggin functions below
     player1.place_ship([[2, 3, 'h'], [4, 8, 'v'], [8, 6, 'h'], [7, 6, 'h'], [6, 6, 'h']])
     player1.PrintGrid()
     player1.take_shot([2, 3])
