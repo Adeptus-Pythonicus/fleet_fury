@@ -50,6 +50,8 @@ pg.display.set_caption("BATTLESHIP")
 boat_img = pg.image.load("./ship_medium_body.png")
 boat_img = pg.transform.scale(boat_img, (CELL_SIZE * 3, CELL_SIZE))
 
+boat_img_array = [boat_img for _ in range(6)]
+
 water_img = pg.image.load("./water_tile.png")
 water_img = pg.transform.scale(boat_img, (CELL_SIZE * 3, CELL_SIZE))
 
@@ -356,8 +358,8 @@ async def boat_phase():
             GRID_Y_OFFSET // 2,
         )
 
-        for boat in boats:
-            screen.blit(boat_img, boat)
+        for index, boat in enumerate(boats):
+            screen.blit(boat_img_array[index], boat)
 
         pg.display.flip()
 
@@ -369,7 +371,11 @@ async def boat_phase():
                             active_boat = num
                 elif event.button == 3 and active_boat is not None:
                     print("help me")
-                    #boats[active_boat] = pg.transform.rotate(boats[active_boat], 90)
+                    boat_img_array[active_boat] = pg.transform.rotate(boat_img_array[active_boat], 90)
+                    boats[active_boat].height, boats[active_boat].width = (
+                        boats[active_boat].width,
+                        boats[active_boat].height,
+                    )
                     # rotate
             if event.type == pg.MOUSEBUTTONUP:
                 if event.button == 1 and active_boat is not None:
@@ -421,8 +427,8 @@ async def send_grenade_to_your_enemy_boat_phase():
             GRID_Y_OFFSET // 2,
         )
 
-        for boat in boats:
-            screen.blit(boat_img, boat)
+        for index, boat in enumerate(boats):
+            screen.blit(boat_img_array[index], boat)
 
         pg.display.flip()
 
