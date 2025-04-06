@@ -13,6 +13,7 @@ async def handle_server_connection(
     ships: asyncio.Queue,
     turn: asyncio.Queue,
     hit: asyncio.Queue,
+    health: asyncio.Queue,
     winner: asyncio.Queue,
 ):
     print("Client started!")
@@ -61,5 +62,8 @@ async def handle_server_connection(
             hit_message = json.loads(hit_message)
             hit_coords = json.dumps(hit_message[0])
             await hit.put(hit_coords)
+
+            health_value = json.dumps(hit_message[2])
+            await health.put(health_value)
 
             print(f"Hit or miss: {hit_message[1]}")

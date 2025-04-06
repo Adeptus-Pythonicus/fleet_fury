@@ -39,8 +39,8 @@ DARK_TEAL = (22, 44, 61)
 MEDIUM_TEAL = (1, 104, 138)
 OUTERBOX = (7, 26, 52)
 INNERBOX = (35, 60, 93)
-RED = (52, 7, 7)
-GREEN = (12, 82, 7)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
 YELLOW = (255, 255, 0)
 ORANGE = (255, 140, 0)
 
@@ -83,6 +83,7 @@ ship_placement = asyncio.Queue()
 target_coords = asyncio.Queue()
 player_turn = asyncio.Queue()
 hit_coords = asyncio.Queue()
+health = asyncio.Queue()
 winner = asyncio.Queue()
 
 turn = False
@@ -91,6 +92,7 @@ enemy_title = ""
 winner_message = ""
 is_winner = False
 is_loser = False
+hp_value = 15
 
 boat_coords = {}
 
@@ -460,13 +462,13 @@ async def send_grenade_to_your_enemy_boat_phase():
     global enemy_title
     global is_winner
     global is_loser
+    global hp_value
 
     background_img = pg.image.load("sea_storm.jpg")
     background_img = pg.transform.scale(background_img, (WIDTH, HEIGHT))
 
     while True:
         screen.blit(background_img, (0, 0))
-        hp_value = 4
         hp_rect = pg.Rect(
             GRID1_X_OFFSET,
             GRID_Y_OFFSET + (CELL_SIZE * 10.1),
@@ -517,7 +519,7 @@ async def send_grenade_to_your_enemy_boat_phase():
 
         if hp_value > 10:
             pg.draw.rect(screen, GREEN, hp_rect, border_radius=3)
-        elif hp_value < 10 and hp_value > 6:
+        elif hp_value < 11 and hp_value > 6:
             pg.draw.rect(screen, YELLOW, hp_rect, border_radius=3)
         elif hp_value < 7 and hp_value > 3:
             pg.draw.rect(screen, ORANGE, hp_rect, border_radius=3)
@@ -549,6 +551,9 @@ async def send_grenade_to_your_enemy_boat_phase():
                 hit = await asyncio.wait_for(hit_coords.get(), 0.1)
                 row, col = list(json.loads(hit))
                 grid1[row][col] = True
+
+                hp_value = await asyncio.wait_for(health.get(), 0.1)
+                hp_value = int(json.loads(hp_value))
             except asyncio.TimeoutError:
                 pass
 
@@ -592,6 +597,7 @@ async def main():
             ship_placement,
             player_turn,
             hit_coords,
+            health,
             winner,
         )
     )
