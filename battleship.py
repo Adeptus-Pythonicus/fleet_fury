@@ -57,6 +57,9 @@ water_tile = pg.transform.scale(water_tile, (CELL_SIZE, CELL_SIZE))
 hit_mark = pg.image.load("./assets/hit.png")
 hit_mark = pg.transform.scale(hit_mark, (CELL_SIZE, CELL_SIZE))
 
+miss_mark = pg.image.load("./assets/miss.png")
+miss_mark = pg.transform.scale(miss_mark, (CELL_SIZE, CELL_SIZE))
+
 background_img_welcome = pg.image.load("./assets/sea_storm1.jpg")
 background_img_welcome = pg.transform.scale(background_img_welcome, (WIDTH, HEIGHT))
 
@@ -479,7 +482,7 @@ async def send_grenade_to_your_enemy_boat_phase():
             small_font,
             WHITE,
             (WIDTH - GRID1_X_OFFSET // 2) - 32,
-            GRID_Y_OFFSET + 30,
+            GRID_Y_OFFSET + 40,
         )
 
         draw_text(
@@ -492,6 +495,25 @@ async def send_grenade_to_your_enemy_boat_phase():
 
         draw_water_grid(GRID1_X_OFFSET)
         draw_water_grid(GRID2_X_OFFSET)
+        screen.blit(hit_mark, ((WIDTH - GRID1_X_OFFSET // 2) - 120, GRID_Y_OFFSET + 100))
+
+        draw_text(
+            " means hit",
+            small_font,
+            WHITE,
+            (WIDTH - GRID1_X_OFFSET // 2) - 30,
+            GRID_Y_OFFSET + 130,
+        )
+
+        screen.blit(miss_mark, ((WIDTH - GRID1_X_OFFSET // 2) - 120,GRID_Y_OFFSET + 150))
+
+        draw_text(
+            " means miss",
+            small_font,
+            WHITE,
+            (WIDTH - GRID1_X_OFFSET // 2) - 20,
+            GRID_Y_OFFSET + 180,
+        )
 
         if turn:
             draw_text(
