@@ -42,7 +42,7 @@ INNERBOX = (35, 60, 93)
 RED = (52, 7, 7)
 GREEN = (12, 82, 7)
 YELLOW = (255, 255, 0)
-ORANGE = (255,140,0)
+ORANGE = (255, 140, 0)
 
 # Images
 battleship_img = pg.image.load("./battleship.png")
@@ -83,10 +83,14 @@ ship_placement = asyncio.Queue()
 target_coords = asyncio.Queue()
 player_turn = asyncio.Queue()
 hit_coords = asyncio.Queue()
+winner = asyncio.Queue()
 
 turn = False
 player_title = ""
 enemy_title = ""
+winner_message = ""
+is_winner = False
+is_loser = False
 
 boat_coords = {}
 
@@ -253,7 +257,6 @@ async def welcome_screen():
     start_button = pg.Rect(0, 0, 180, 60)
     start_button.center = (WIDTH // 2, int(y * 3.125))
 
-
     line = pg.Rect(0, 0, box_inner.width * 0.75, 1)
     line.center = (WIDTH // 2, int(y * 1.45))
 
@@ -288,10 +291,34 @@ async def welcome_screen():
         )
 
         draw_text("How to play:", big_font, WHITE, (WIDTH // 2), y * 2)
-        draw_text("Place your boats - Use left click to drag them onto the board and right click to rotate", small_font, WHITE, (WIDTH // 2)-45, y * 2.2)
-        draw_text("Take turns shooting - Pick a spot to fire at on your opponent's grid", small_font, WHITE, (WIDTH // 2)-120, y * 2.35)
-        draw_text("Wind affects your shots - Wind in Nanaimo might push your shot in a different direction!", small_font, WHITE, (WIDTH // 2)-25, y * 2.5)
-        draw_text("Goal: sink all of your opponent's ships before they sink yours!", medium_font, WHITE, (WIDTH // 2), y * 2.80)
+        draw_text(
+            "Place your boats - Use left click to drag them onto the board and right click to rotate",
+            small_font,
+            WHITE,
+            (WIDTH // 2) - 45,
+            y * 2.2,
+        )
+        draw_text(
+            "Take turns shooting - Pick a spot to fire at on your opponent's grid",
+            small_font,
+            WHITE,
+            (WIDTH // 2) - 120,
+            y * 2.35,
+        )
+        draw_text(
+            "Wind affects your shots - Wind in Nanaimo might push your shot in a different direction!",
+            small_font,
+            WHITE,
+            (WIDTH // 2) - 25,
+            y * 2.5,
+        )
+        draw_text(
+            "Goal: sink all of your opponent's ships before they sink yours!",
+            medium_font,
+            WHITE,
+            (WIDTH // 2),
+            y * 2.80,
+        )
 
         display_text = player_title + "|" if active else player_title
 
@@ -427,29 +454,41 @@ async def boat_phase():
 
         await asyncio.sleep(0)
 
+
 async def send_grenade_to_your_enemy_boat_phase():
     global turn
     global enemy_title
+    global is_winner
+    global is_loser
 
     background_img = pg.image.load("sea_storm.jpg")
     background_img = pg.transform.scale(background_img, (WIDTH, HEIGHT))
 
-
     while True:
         screen.blit(background_img, (0, 0))
-        hp_value=4
-        hp_rect = pg.Rect(GRID1_X_OFFSET, GRID_Y_OFFSET + (CELL_SIZE*10.1), CELL_SIZE * (0.6666 * hp_value), CELL_SIZE * 0.3)
+        hp_value = 4
+        hp_rect = pg.Rect(
+            GRID1_X_OFFSET,
+            GRID_Y_OFFSET + (CELL_SIZE * 10.1),
+            CELL_SIZE * (0.6666 * hp_value),
+            CELL_SIZE * 0.3,
+        )
 
         draw_text(
             str("Wind direction: " + weather_data.string_direction),
             small_font,
             WHITE,
             (WIDTH - GRID1_X_OFFSET // 2) - 32,
-            GRID_Y_OFFSET + 30
+            GRID_Y_OFFSET + 30,
         )
 
         draw_text(
-            ("Wind speed: " + str(weather_data.wind_values[0]) + " km/h"), small_font, WHITE, (WIDTH - GRID1_X_OFFSET // 2) - 30, GRID_Y_OFFSET + 10)
+            ("Wind speed: " + str(weather_data.wind_values[0]) + " km/h"),
+            small_font,
+            WHITE,
+            (WIDTH - GRID1_X_OFFSET // 2) - 30,
+            GRID_Y_OFFSET + 10,
+        )
 
         draw_water_overlay(GRID1_X_OFFSET)
         draw_water_overlay(GRID2_X_OFFSET)
@@ -485,8 +524,22 @@ async def send_grenade_to_your_enemy_boat_phase():
         else:
             pg.draw.rect(screen, RED, hp_rect, border_radius=3)
 
+        if is_winner:
+            draw_text("WINNER!", big_font, WHITE, WIDTH // 2, HEIGHT - 100)
+        if is_loser:
+            draw_text("LOSER!", big_font, WHITE, WIDTH // 2, HEIGHT - 100)
 
         pg.display.flip()
+
+        if not is_winner:
+            try:
+                winner_message = await asyncio.wait_for(winner.get(), 0.1)
+                if winner_message == "Winner":
+                    is_winner = True
+                if winner_message == "Loser":
+                    is_loser = True
+            except asyncio.TimeoutError:
+                pass
 
         if not turn:
             try:
@@ -500,7 +553,7 @@ async def send_grenade_to_your_enemy_boat_phase():
                 pass
 
         for event in pg.event.get():
-            if event.type == pg.MOUSEBUTTONDOWN:
+            if event.type == pg.MOUSEBUTTONDOWN and not is_winner and not is_loser:
                 if turn:
                     await select_tile(
                         grid2, GRID2_X_OFFSET, event.pos, selected_tiles_opponent
@@ -539,6 +592,7 @@ async def main():
             ship_placement,
             player_turn,
             hit_coords,
+            winner,
         )
     )
 

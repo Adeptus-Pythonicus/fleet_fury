@@ -75,19 +75,31 @@ async def client_endpoint(websocket: WebSocket):
             TODO: same issue as the block of comment; must be fixed
             if not (isinstance(hit_coords, list) and len(hit_coords) == 2):
                 await websocket.send_text("ERROR: Invalid coordinates")
-                continue
+                continuefalse
             """
 
             # should be right
             opponent_idx = 1 - current_player_idx  # just between 1 and 0
             hit_result = players[opponent_idx].take_shot(hit_coords)
 
-            for player in connection_list:
-                if player != websocket:
-                    # Notify the opponent about their turn
-                    await player.send_text("Your turn")
-                    message = [hit_coords, "hit" if hit_result else "miss"]
-                    await player.send_json(message)
+            result = players[opponent_idx].check_winner()
+            if result == 1:
+                print("Sending no winner messages")
+                await connection_list[opponent_idx].send_text("No winner")
+            if result == 0:
+                await connection_list[current_player_idx].send_text("Winner")
+                await connection_list[opponent_idx].send_text("Loser")
+
+            print("Sending your turn to opponent")
+            await connection_list[opponent_idx].send_text("Your turn")
+
+            message = [
+                hit_coords,
+                "hit" if hit_result else "miss",
+                players[opponent_idx].player_health,
+            ]
+            print("Sending hit message to opponent")
+            await connection_list[opponent_idx].send_json(message)
 
     except Exception as e:
         print(f"Connection error: {e}")

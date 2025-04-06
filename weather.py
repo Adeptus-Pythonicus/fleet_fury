@@ -7,7 +7,7 @@ from typing import List
 import requests
 from requests.exceptions import SSLError
 
-logging.basicConfig(level=logging.DEBUG)  # or INFO, WARNING, ERROR, CRITICAL
+logging.basicConfig(level=logging.ERROR)  # or INFO, WARNING, ERROR, CRITICAL
 
 
 class WindModifier:
