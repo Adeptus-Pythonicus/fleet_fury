@@ -35,8 +35,10 @@ BROWN = (111, 78, 55)
 DARK_BROWN = (148, 137, 121)
 PLATINUM = (217, 217, 217)
 VERY_DARK_BLUE = (3, 16, 24)
-DARK_TEAL = (0, 67, 89)
+DARK_TEAL = (22, 44, 61)
 MEDIUM_TEAL = (1, 104, 138)
+OUTERBOX = (7, 34, 52)
+INNERBOX = (35, 72, 93)
 
 # Images
 battleship_img = pg.image.load("./battleship.png")
@@ -50,6 +52,9 @@ boat_img = pg.transform.scale(boat_img, (CELL_SIZE * 3, CELL_SIZE))
 
 water_img = pg.image.load("./water_tile.png")
 water_img = pg.transform.scale(boat_img, (CELL_SIZE * 3, CELL_SIZE))
+
+water_tile = pg.image.load("./water_tile.png")
+water_tile = pg.transform.scale(water_tile, (CELL_SIZE, CELL_SIZE))
 
 # Grids stored
 grid1 = [[False for _ in range(COLS)] for _ in range(ROWS)]
@@ -118,13 +123,23 @@ def draw_grid(grid, x_offset):
             pg.draw.rect(screen, VERY_DARK_BLUE, rect, 1)
     num_y = GRID_Y_OFFSET + CELL_SIZE // 2
     for i in range(10):
-        draw_text(str(i), medium_font, DARK_BLUE, x_offset - CELL_SIZE // 2, num_y)
+        draw_text(str(i), medium_font, WHITE, x_offset - CELL_SIZE // 2, num_y)
         num_y += CELL_SIZE
     num_x = x_offset + CELL_SIZE // 2
     for i in range(10):
-        draw_text(str(i), medium_font, DARK_BLUE, num_x, GRID_Y_OFFSET - CELL_SIZE // 2)
+        draw_text(str(i), medium_font,  WHITE, num_x, GRID_Y_OFFSET - CELL_SIZE // 2)
         num_x += CELL_SIZE
 
+def draw_water_overlay(x_offset):
+    for row in range(ROWS):
+        for col in range(COLS):
+            tile_rect = pg.Rect(
+                x_offset + col * CELL_SIZE,
+                GRID_Y_OFFSET + row * CELL_SIZE,
+                CELL_SIZE,
+                CELL_SIZE,
+            )
+            screen.blit(water_tile, tile_rect)
 
 def draw_text(text, font, color, x, y):
     img = font.render(text, True, color)
@@ -227,12 +242,12 @@ async def welcome_screen():
     line = pg.Rect(0, 0, box_inner.width * 0.75, 1)
     line.center = (WIDTH // 2, int(y * 1.45))
 
-    color_inactive = PLATINUM
-    color_active = BLACK
+    color_inactive = OUTERBOX
+    color_active = WHITE
     color = color_inactive
     active = False
 
-    background_img = pg.image.load("ocean-waves-aerial-view.jpg")
+    background_img = pg.image.load("sea_storm1.jpg")
     background_img = pg.transform.scale(background_img, (WIDTH, HEIGHT))
 
     logo_img = pg.image.load("light_logo.png")
@@ -242,8 +257,8 @@ async def welcome_screen():
     while running:
         screen.blit(background_img, (0, 0))
         screen.blit(logo_img, (0, 0))
-        pg.draw.rect(screen, VERY_DARK_BLUE, box_outer, border_radius=5)
-        pg.draw.rect(screen, DARK_TEAL, box_inner, border_radius=5)
+        pg.draw.rect(screen, OUTERBOX, box_outer, border_radius=5)
+        pg.draw.rect(screen, INNERBOX, box_inner, border_radius=5)
         pg.draw.rect(screen, WHITE, line)
         draw_text(
             "WELCOME TO FLEET FURY",
@@ -296,14 +311,19 @@ async def boat_phase():
     global enemy_title
     active_boat = None
 
+    background_img = pg.image.load("sea_storm.jpg")
+    background_img = pg.transform.scale(background_img, (WIDTH, HEIGHT))
+
     click_img = pg.image.load("right-click.png")
     click_img = pg.transform.scale(click_img, (60, 60))
 
     while True:
-        screen.fill(PLATINUM)
+        screen.blit(background_img, (0, 0))
 
         draw_grid(grid1, GRID1_X_OFFSET)
         draw_grid(grid2, GRID2_X_OFFSET)
+        draw_water_overlay(GRID1_X_OFFSET)
+        draw_water_overlay(GRID2_X_OFFSET)
 
         screen.blit(
             click_img,
@@ -315,7 +335,7 @@ async def boat_phase():
         draw_text(
             "Rotate",
             big_font,
-            BLACK,
+            WHITE,
             WIDTH - GRID1_X_OFFSET // 2,
             HEIGHT // 2,
         )
@@ -323,7 +343,7 @@ async def boat_phase():
         draw_text(
             player_title,
             big_font,
-            BLACK,
+            WHITE,
             GRID1_X_OFFSET + GRID_WIDTH // 2,
             GRID_Y_OFFSET // 2,
         )
@@ -331,7 +351,7 @@ async def boat_phase():
         draw_text(
             enemy_title,
             big_font,
-            BLACK,
+            WHITE,
             GRID2_X_OFFSET + GRID_WIDTH // 2,
             GRID_Y_OFFSET // 2,
         )
