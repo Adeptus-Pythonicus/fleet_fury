@@ -15,6 +15,7 @@ class WindModifier:
     def __init__(self):
         # [wind speed, direction (in polar coordinate)]
         self.wind_values = []
+        self.string_direction = ""
 
     def cyclic_modulus(self, x, min_val=0, max_val=9):
         """
@@ -47,31 +48,40 @@ class WindModifier:
         match x:
             case x if 0 <= x < 22.5:
                 logging.info(f"Wind blows East")
-                dx, dy = 1, 0
+                self.string_direction = "East"
+                dx, dy = 0, 1
             case x if 22.5 <= x < 67.5:
                 logging.info(f"Wind blows North East")
-                dx, dy = 1, -1
+                self.string_direction = "North East"
+                dx, dy = -1, 1
             case x if 67.5 <= x < 112.5:
+                self.string_direction = "North"
                 logging.info(f"Wind blows North")
-                dx, dy = 0, -1
+                dx, dy = -1, 0
             case x if 112.5 <= x < 157.5:
+                self.string_direction = "North West"
                 logging.info(f"Wind blows North West")
                 dx, dy = -1, -1
             case x if 157.5 <= x < 202.5:
                 logging.info(f"Wind blows West")
-                dx, dy = -1, 0
+                self.string_direction = "West"
+                dx, dy = 0, -1
             case x if 202.5 <= x < 247.5:
                 logging.info(f"Wind blows South West")
-                dx, dy = -1, 1
+                self.string_direction = "South West"
+                dx, dy = 1, -1
             case x if 247.5 <= x < 292.5:
                 logging.info(f"Wind blows South")
-                dx, dy = 0, 1
+                self.string_direction = "South"
+                dx, dy = 1, 0
             case x if 292.5 <= x < 337.5:
                 logging.info(f"Wind blows South East")
+                self.string_direction = "South East"
                 dx, dy = 1, 1
             case x if 337.5 <= x < 360:
                 logging.info(f"Wind blows East")
-                dx, dy = 1, 0
+                self.string_direction = "East"
+                dx, dy = 0, 1
             case _:
                 raise ValueError("Angle x must be in [0, 360) degrees")
 
@@ -142,7 +152,7 @@ class WindModifier:
 
             else:
                 self.wind_values = [
-                    current_windspeed * 2,
+                    current_windspeed,
                     self.wind_direction_polar(current_winddirection),
                 ]
 
@@ -152,8 +162,8 @@ if __name__ == "__main__":
     x = WindModifier()
     x.get_weather_data()
     print(x.wind_values)
-
     x.determine_shift([0, 0])
     x.determine_shift([9, 9])
     x.determine_shift([0, 9])
     x.determine_shift([9, 0])
+    print(x.string_direction)

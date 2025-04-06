@@ -58,6 +58,9 @@ water_img = pg.transform.scale(boat_img, (CELL_SIZE * 3, CELL_SIZE))
 water_tile = pg.image.load("./water_tile.png")
 water_tile = pg.transform.scale(water_tile, (CELL_SIZE, CELL_SIZE))
 
+hit_mark = pg.image.load("./hit.png")
+hit_mark = pg.transform.scale(hit_mark, (CELL_SIZE, CELL_SIZE))
+
 # Grids stored
 grid1 = [[False for _ in range(COLS)] for _ in range(ROWS)]
 grid2 = [[False for _ in range(COLS)] for _ in range(ROWS)]
@@ -85,6 +88,7 @@ boat_coords = {}
 
 weather_data = WindModifier()
 weather_data.get_weather_data()
+weather_data.determine_shift([0, 0])
 
 clock = pg.time.Clock()
 
@@ -120,17 +124,17 @@ def draw_grid(grid, x_offset):
                 CELL_SIZE,
                 CELL_SIZE,
             )
-            color = BLUE if grid[row][col] else DARK_TEAL
-            pg.draw.rect(screen, color, rect)
-            pg.draw.rect(screen, VERY_DARK_BLUE, rect, 1)
+            if grid[row][col]:
+                screen.blit(hit_mark, rect)
     num_y = GRID_Y_OFFSET + CELL_SIZE // 2
     for i in range(10):
         draw_text(str(i), medium_font, WHITE, x_offset - CELL_SIZE // 2, num_y)
         num_y += CELL_SIZE
     num_x = x_offset + CELL_SIZE // 2
     for i in range(10):
-        draw_text(str(i), medium_font,  WHITE, num_x, GRID_Y_OFFSET - CELL_SIZE // 2)
+        draw_text(str(i), medium_font, WHITE, num_x, GRID_Y_OFFSET - CELL_SIZE // 2)
         num_x += CELL_SIZE
+
 
 def draw_water_overlay(x_offset):
     for row in range(ROWS):
@@ -142,6 +146,8 @@ def draw_water_overlay(x_offset):
                 CELL_SIZE,
             )
             screen.blit(water_tile, tile_rect)
+            pg.draw.rect(screen, VERY_DARK_BLUE, tile_rect, 1)
+
 
 def draw_text(text, font, color, x, y):
     img = font.render(text, True, color)
@@ -262,6 +268,18 @@ async def welcome_screen():
         pg.draw.rect(screen, OUTERBOX, box_outer, border_radius=5)
         pg.draw.rect(screen, INNERBOX, box_inner, border_radius=5)
         pg.draw.rect(screen, WHITE, line)
+
+        draw_text(
+            str("Wind direction: " + weather_data.string_direction),
+            big_font,
+            WHITE,
+            50,
+            100,
+        )
+        draw_text(
+            "Wind speed: " + str(weather_data.wind_values[0]), big_font, WHITE, 100, 150
+        )
+
         draw_text(
             "WELCOME TO FLEET FURY",
             big_font,
@@ -371,7 +389,9 @@ async def boat_phase():
                             active_boat = num
                 elif event.button == 3 and active_boat is not None:
                     print("help me")
-                    boat_img_array[active_boat] = pg.transform.rotate(boat_img_array[active_boat], 90)
+                    boat_img_array[active_boat] = pg.transform.rotate(
+                        boat_img_array[active_boat], 90
+                    )
                     boats[active_boat].height, boats[active_boat].width = (
                         boats[active_boat].width,
                         boats[active_boat].height,
@@ -405,11 +425,25 @@ async def send_grenade_to_your_enemy_boat_phase():
     global turn
     global enemy_title
 
-    while True:
-        screen.fill(PLATINUM)
+    background_img = pg.image.load("sea_storm.jpg")
+    background_img = pg.transform.scale(background_img, (WIDTH, HEIGHT))
 
-        draw_grid(grid1, GRID1_X_OFFSET)
-        draw_grid(grid2, GRID2_X_OFFSET)
+    while True:
+        screen.blit(background_img, (0, 0))
+
+        draw_text(
+            str("Wind direction: " + weather_data.string_direction),
+            big_font,
+            WHITE,
+            100,
+            100,
+        )
+        draw_text(
+            "Wind speed: " + str(weather_data.wind_values[0]), big_font, WHITE, 100, 150
+        )
+
+        draw_water_overlay(GRID1_X_OFFSET)
+        draw_water_overlay(GRID2_X_OFFSET)
 
         draw_text(
             player_title,
@@ -429,6 +463,9 @@ async def send_grenade_to_your_enemy_boat_phase():
 
         for index, boat in enumerate(boats):
             screen.blit(boat_img_array[index], boat)
+
+        draw_grid(grid1, GRID1_X_OFFSET)
+        draw_grid(grid2, GRID2_X_OFFSET)
 
         pg.display.flip()
 
