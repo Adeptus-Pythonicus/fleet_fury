@@ -45,25 +45,35 @@ YELLOW = (255, 255, 0)
 ORANGE = (255, 140, 0)
 
 # Images
-battleship_img = pg.image.load("./battleship.png")
+boat_img = pg.image.load("./assets/ship_medium_body.png")
+boat_img = pg.transform.scale(boat_img, (CELL_SIZE * 3, CELL_SIZE))
+
+water_img = pg.image.load("./assets/water_tile.png")
+water_img = pg.transform.scale(boat_img, (CELL_SIZE * 3, CELL_SIZE))
+
+water_tile = pg.image.load("./assets/water_tile.png")
+water_tile = pg.transform.scale(water_tile, (CELL_SIZE, CELL_SIZE))
+
+hit_mark = pg.image.load("./assets/hit.png")
+hit_mark = pg.transform.scale(hit_mark, (CELL_SIZE, CELL_SIZE))
+
+background_img_welcome = pg.image.load("./assets/sea_storm1.jpg")
+background_img_welcome = pg.transform.scale(background_img_welcome, (WIDTH, HEIGHT))
+
+background_img_game = pg.image.load("./assets/sea_storm.jpg")
+background_img_game = pg.transform.scale(background_img_game, (WIDTH, HEIGHT))
+
+logo_img = pg.image.load("./assets/light_logo.png")
+logo_img = pg.transform.scale(logo_img, (123, 103))
+
+# fonts
+big_font = pg.font.Font("./assets/times.ttf", 30)
+medium_font = pg.font.Font("./assets/times.ttf", 25)
+small_font = pg.font.Font("./assets/times.ttf", 20)
 
 # Create Window
 screen = pg.display.set_mode((WIDTH, HEIGHT))
 pg.display.set_caption("BATTLESHIP")
-
-boat_img = pg.image.load("./ship_medium_body.png")
-boat_img = pg.transform.scale(boat_img, (CELL_SIZE * 3, CELL_SIZE))
-
-boat_img_array = [boat_img for _ in range(6)]
-
-water_img = pg.image.load("./water_tile.png")
-water_img = pg.transform.scale(boat_img, (CELL_SIZE * 3, CELL_SIZE))
-
-water_tile = pg.image.load("./water_tile.png")
-water_tile = pg.transform.scale(water_tile, (CELL_SIZE, CELL_SIZE))
-
-hit_mark = pg.image.load("./hit.png")
-hit_mark = pg.transform.scale(hit_mark, (CELL_SIZE, CELL_SIZE))
 
 # Grids stored
 grid1 = [[False for _ in range(COLS)] for _ in range(ROWS)]
@@ -72,12 +82,17 @@ grid2 = [[False for _ in range(COLS)] for _ in range(ROWS)]
 selected_tiles_player = []
 selected_tiles_opponent = []
 
+# list of boat rectagles
 boats = []
 
-big_font = pg.font.Font("times.ttf", 30)
-medium_font = pg.font.Font("times.ttf", 25)
-small_font = pg.font.Font("times.ttf", 20)
+# dict of boat's center coords and orientation
+# keys are the indexes of rects in boats
+boat_coords = {}
 
+# boat images in an array matching the boats
+boat_img_array = [boat_img for _ in range(6)]
+
+# Queues to share data between client and game
 player_name = asyncio.Queue()
 ship_placement = asyncio.Queue()
 target_coords = asyncio.Queue()
@@ -86,20 +101,21 @@ hit_coords = asyncio.Queue()
 health = asyncio.Queue()
 winner = asyncio.Queue()
 
+# Values update based on info from server
 turn = False
+is_winner = False
+is_loser = False
 player_title = ""
 enemy_title = ""
 winner_message = ""
-is_winner = False
-is_loser = False
 hp_value = 15
 
-boat_coords = {}
-
+# Initializing weather data
 weather_data = WindModifier()
 weather_data.get_weather_data()
 weather_data.determine_shift([0, 0])
 
+# Clock object for controlling fps
 clock = pg.time.Clock()
 
 
@@ -267,15 +283,9 @@ async def welcome_screen():
     color = color_inactive
     active = False
 
-    background_img = pg.image.load("sea_storm1.jpg")
-    background_img = pg.transform.scale(background_img, (WIDTH, HEIGHT))
-
-    logo_img = pg.image.load("light_logo.png")
-    logo_img = pg.transform.scale(logo_img, (123, 103))
-
     running = True
     while running:
-        screen.blit(background_img, (0, 0))
+        screen.blit(background_img_welcome, (0, 0))
         screen.blit(logo_img, (0, 0))
         pg.draw.rect(screen, OUTERBOX, box_outer, border_radius=5)
         pg.draw.rect(screen, INNERBOX, box_inner, border_radius=5)
@@ -369,34 +379,13 @@ async def boat_phase():
     global enemy_title
     active_boat = None
 
-    background_img = pg.image.load("sea_storm.jpg")
-    background_img = pg.transform.scale(background_img, (WIDTH, HEIGHT))
-
-    click_img = pg.image.load("right-click.png")
-    click_img = pg.transform.scale(click_img, (60, 60))
-
     while True:
-        screen.blit(background_img, (0, 0))
+        screen.blit(background_img_game, (0, 0))
 
         draw_grid(grid1, GRID1_X_OFFSET)
         draw_grid(grid2, GRID2_X_OFFSET)
         draw_water_overlay(GRID1_X_OFFSET)
         draw_water_overlay(GRID2_X_OFFSET)
-
-        # screen.blit(
-        #     click_img,
-        #     (
-        #         WIDTH - GRID1_X_OFFSET + 75 - click_img.get_width() // 2,
-        #         HEIGHT // 2 - click_img.get_height() // 2,
-        #     ),
-        # )
-        # draw_text(
-        #     "Rotate",
-        #     big_font,
-        #     WHITE,
-        #     WIDTH - GRID1_X_OFFSET // 2,
-        #     HEIGHT // 2,
-        # )
 
         draw_text(
             player_title,
@@ -464,11 +453,8 @@ async def send_grenade_to_your_enemy_boat_phase():
     global is_loser
     global hp_value
 
-    background_img = pg.image.load("sea_storm.jpg")
-    background_img = pg.transform.scale(background_img, (WIDTH, HEIGHT))
-
     while True:
-        screen.blit(background_img, (0, 0))
+        screen.blit(background_img_game, (0, 0))
         hp_rect = pg.Rect(
             GRID1_X_OFFSET,
             GRID_Y_OFFSET + (CELL_SIZE * 10.1),
