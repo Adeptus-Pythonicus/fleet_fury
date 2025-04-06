@@ -67,34 +67,42 @@ async def client_endpoint(websocket: WebSocket):
                 else:
                     await connection_list[0].send_text("Your turn")
 
-            while True:
-                # hit process
-                hit_coords = await websocket.receive_json()
-                print(f"Hit coords received from client: {hit_coords}")
+            # hit process
+            hit_coords = await websocket.receive_json()
+            print(f"Hit coords received from client: {hit_coords}")
 
-                """"
-                TODO: same issue as the block of comment; must be fixed
-                if not (isinstance(hit_coords, list) and len(hit_coords) == 2):
-                    await websocket.send_text("ERROR: Invalid coordinates")
-                    continue
-                """
+            """"
+            TODO: same issue as the block of comment; must be fixed
+            if not (isinstance(hit_coords, list) and len(hit_coords) == 2):
+                await websocket.send_text("ERROR: Invalid coordinates")
+                continuefalse
+            """
 
-                # should be right
-                opponent_idx = 1 - current_player_idx  # just between 1 and 0
-                hit_result = players[opponent_idx].take_shot(hit_coords)
+            # should be right
+            opponent_idx = 1 - current_player_idx  # just between 1 and 0
+            hit_result = players[opponent_idx].take_shot(hit_coords)
 
-                for player in connection_list:
-                    if player != websocket:
-                        
-                        await player.send_text("Your turn")
+            result = players[opponent_idx].check_winner()
+            if result == 1:
+                print("Sending no winner messages")
+                await connection_list[opponent_idx].send_text("No winner")
+            if result == 0:
+                await connection_list[current_player_idx].send_text("Winner")
+                await connection_list[opponent_idx].send_text("Loser")
 
-                        message = [hit_coords, "hit" if hit_result else "miss",players[opponent_idx].player_health]
-                        await player.send_json(message)
+            print("Sending your turn to opponent")
+            await connection_list[opponent_idx].send_text("Your turn")
 
-                        result = players[opponent_idx].check_winner()
-                        if result == 0:
-                            await connection_list[1].send_text("You win!")
-                            await connection_list[0].send_text("You lose")                
+            message = [
+                hit_coords,
+                "hit" if hit_result else "miss",
+                players[opponent_idx].player_health,
+            ]
+            message2 = "hit" if hit_result else "miss"
+            print("Sending hit message to opponent")
+            await connection_list[current_player_idx].send_text(message2)
+            await connection_list[opponent_idx].send_text(message2)
+            await connection_list[opponent_idx].send_json(message)
 
     except Exception as e:
         print(f"Connection error: {e}")
