@@ -100,9 +100,8 @@ async def client_endpoint(websocket: WebSocket):
             ]
             message2 = "hit" if hit_result else "miss"
             print("Sending hit message to opponent")
-            await connection_list[current_player_idx].send_text(message2)
-            await connection_list[opponent_idx].send_text(message2)
             await connection_list[opponent_idx].send_json(message)
+            await connection_list[current_player_idx].send_text(message2)
 
     except Exception as e:
         print(f"Connection error: {e}")
