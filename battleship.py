@@ -37,8 +37,8 @@ PLATINUM = (217, 217, 217)
 VERY_DARK_BLUE = (3, 16, 24)
 DARK_TEAL = (22, 44, 61)
 MEDIUM_TEAL = (1, 104, 138)
-OUTERBOX = (7, 34, 52)
-INNERBOX = (35, 72, 93)
+OUTERBOX = (7, 26, 52)
+INNERBOX = (35, 60, 93)
 
 # Images
 battleship_img = pg.image.load("./battleship.png")
@@ -246,6 +246,9 @@ async def welcome_screen():
 
     input_box = pg.Rect(0, 0, 300, 60)
     input_box.center = (WIDTH // 2, int(y * 1.65))
+    start_button = pg.Rect(0, 0, 180, 60)
+    start_button.center = (WIDTH // 2, int(y * 3.125))
+
 
     line = pg.Rect(0, 0, box_inner.width * 0.75, 1)
     line.center = (WIDTH // 2, int(y * 1.45))
@@ -291,13 +294,21 @@ async def welcome_screen():
             "Enter a nickname to begin", small_font, PLATINUM, (WIDTH // 2), y * 1.35
         )
 
-        draw_text("RULES:", big_font, WHITE, (WIDTH // 2), y * 2.2)
+        draw_text("How to play:", big_font, WHITE, (WIDTH // 2), y * 2)
+        draw_text("Place your boats - Use left click to drag them onto the board and right click to rotate", small_font, WHITE, (WIDTH // 2)-45, y * 2.2)
+        draw_text("Take turns shooting - Pick a spot to fire at on your opponent's grid", small_font, WHITE, (WIDTH // 2)-120, y * 2.35)
+        draw_text("Wind affects your shots - Wind in Nanaimo might push your shot in a different direction!", small_font, WHITE, (WIDTH // 2)-25, y * 2.5)
+        draw_text("Goal: sink all of your opponent's ships before they sink yours!", medium_font, WHITE, (WIDTH // 2), y * 2.80)
 
         display_text = player_title + "|" if active else player_title
 
         pg.draw.rect(screen, color, input_box, 2, border_radius=10)
         txt_surface = big_font.render(display_text, True, WHITE)
         screen.blit(txt_surface, (input_box.x + 5, input_box.y + 5))
+
+        # Draw start button
+        pg.draw.rect(screen, OUTERBOX, start_button, border_radius=10)
+        draw_text("START", big_font, WHITE, start_button.centerx, start_button.centery)
 
         pg.display.flip()
 
@@ -310,6 +321,11 @@ async def welcome_screen():
                 else:
                     active = False
                 color = color_active if active else color_inactive
+                if start_button.collidepoint(event.pos):
+                    if player_title.strip():
+                        await player_name.put(player_title)
+                        running = False
+
             if event.type == pg.KEYDOWN:
                 if active:
                     if event.key == pg.K_RETURN:
@@ -388,7 +404,6 @@ async def boat_phase():
                         if boat.collidepoint(event.pos):
                             active_boat = num
                 elif event.button == 3 and active_boat is not None:
-                    print("help me")
                     boat_img_array[active_boat] = pg.transform.rotate(
                         boat_img_array[active_boat], 90
                     )
@@ -419,8 +434,6 @@ async def boat_phase():
 
         await asyncio.sleep(0)
 
-
-# TODO: fix hp bar and figure out how to better diplay hit marks from the enemy
 async def send_grenade_to_your_enemy_boat_phase():
     global turn
     global enemy_title
@@ -448,7 +461,7 @@ async def send_grenade_to_your_enemy_boat_phase():
         draw_text(
             player_title,
             big_font,
-            BLACK,
+            WHITE,
             GRID1_X_OFFSET + GRID_WIDTH // 2,
             GRID_Y_OFFSET // 2,
         )
@@ -456,7 +469,7 @@ async def send_grenade_to_your_enemy_boat_phase():
         draw_text(
             enemy_title,
             big_font,
-            BLACK,
+            WHITE,
             GRID2_X_OFFSET + GRID_WIDTH // 2,
             GRID_Y_OFFSET // 2,
         )
