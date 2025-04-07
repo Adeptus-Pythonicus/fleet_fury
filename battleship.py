@@ -26,19 +26,14 @@ GRID_Y_OFFSET = (HEIGHT - (ROWS * CELL_SIZE)) // 2
 
 # Colors
 WHITE = (255, 255, 255)
-LIGHT_BLUE = (218, 237, 244)
-DARK_BLUE = (40, 75, 99)
 BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
-GRAY = (169, 169, 169)
-BROWN = (111, 78, 55)
-DARK_BROWN = (148, 137, 121)
 PLATINUM = (217, 217, 217)
 VERY_DARK_BLUE = (3, 16, 24)
-DARK_TEAL = (22, 44, 61)
-MEDIUM_TEAL = (1, 104, 138)
+# welcome screen box colors
 OUTERBOX = (7, 26, 52)
 INNERBOX = (35, 60, 93)
+# hp bar colors
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 YELLOW = (255, 255, 0)
@@ -562,9 +557,11 @@ async def send_grenade_to_your_enemy_boat_phase():
             pg.draw.rect(screen, RED, hp_rect, border_radius=3)
 
         if is_winner:
-            draw_text("WINNER!", big_font, WHITE, WIDTH // 2, HEIGHT - 100)
+            pg.draw.rect(screen, OUTERBOX, (WIDTH // 2 - 105, HEIGHT - 130, 210, 60), border_radius=10)
+            draw_text("YOU WON!", big_font, WHITE, WIDTH // 2, HEIGHT - 100)
         if is_loser:
-            draw_text("LOSER!", big_font, WHITE, WIDTH // 2, HEIGHT - 100)
+            pg.draw.rect(screen, OUTERBOX, (WIDTH // 2 - 105, HEIGHT - 130, 210, 60), border_radius=10)
+            draw_text("YOU LOST!", big_font, WHITE, WIDTH // 2, HEIGHT - 100)
 
         pg.display.flip()
 
