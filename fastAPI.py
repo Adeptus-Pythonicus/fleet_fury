@@ -82,6 +82,9 @@ async def client_endpoint(websocket: WebSocket):
             opponent_idx = 1 - current_player_idx  # just between 1 and 0
             hit_result = players[opponent_idx].take_shot(hit_coords)
 
+            message = "hit" if hit_result else "miss"
+            await connection_list[current_player_idx].send_text(message)
+
             result = players[opponent_idx].check_winner()
             if result == 1:
                 print("Sending no winner messages")

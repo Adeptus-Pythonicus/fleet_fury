@@ -26,19 +26,14 @@ GRID_Y_OFFSET = (HEIGHT - (ROWS * CELL_SIZE)) // 2
 
 # Colors
 WHITE = (255, 255, 255)
-LIGHT_BLUE = (218, 237, 244)
-DARK_BLUE = (40, 75, 99)
 BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
-GRAY = (169, 169, 169)
-BROWN = (111, 78, 55)
-DARK_BROWN = (148, 137, 121)
 PLATINUM = (217, 217, 217)
 VERY_DARK_BLUE = (3, 16, 24)
-DARK_TEAL = (22, 44, 61)
-MEDIUM_TEAL = (1, 104, 138)
+# welcome screen box colors
 OUTERBOX = (7, 26, 52)
 INNERBOX = (35, 60, 93)
+# hp bar colors
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 YELLOW = (255, 255, 0)
@@ -56,6 +51,9 @@ water_tile = pg.transform.scale(water_tile, (CELL_SIZE, CELL_SIZE))
 
 hit_mark = pg.image.load("./assets/hit.png")
 hit_mark = pg.transform.scale(hit_mark, (CELL_SIZE, CELL_SIZE))
+
+miss_mark = pg.image.load("./assets/miss.png")
+miss_mark = pg.transform.scale(miss_mark, (CELL_SIZE, CELL_SIZE))
 
 background_img_welcome = pg.image.load("./assets/sea_storm1.jpg")
 background_img_welcome = pg.transform.scale(background_img_welcome, (WIDTH, HEIGHT))
@@ -76,11 +74,8 @@ screen = pg.display.set_mode((WIDTH, HEIGHT))
 pg.display.set_caption("BATTLESHIP")
 
 # Grids stored
-grid1 = [[False for _ in range(COLS)] for _ in range(ROWS)]
-grid2 = [[False for _ in range(COLS)] for _ in range(ROWS)]
-
-selected_tiles_player = []
-selected_tiles_opponent = []
+player_grid = [[0 for _ in range(COLS)] for _ in range(ROWS)]
+opponent_grid = [[0 for _ in range(COLS)] for _ in range(ROWS)]
 
 # list of boat rectagles
 boats = []
@@ -97,7 +92,8 @@ player_name = asyncio.Queue()
 ship_placement = asyncio.Queue()
 target_coords = asyncio.Queue()
 player_turn = asyncio.Queue()
-hit_coords = asyncio.Queue()
+hit = asyncio.Queue()
+hit_miss = asyncio.Queue()
 health = asyncio.Queue()
 winner = asyncio.Queue()
 
@@ -141,7 +137,7 @@ def reset_boat(boat: pg.Rect):
     boat_coords[boats.index(boat)] = None
 
 
-def draw_grid(grid, x_offset):
+def draw_hit(grid, x_offset):
     for row in range(ROWS):
         for col in range(COLS):
             rect = pg.Rect(
@@ -150,8 +146,12 @@ def draw_grid(grid, x_offset):
                 CELL_SIZE,
                 CELL_SIZE,
             )
-            if grid[row][col]:
+            if grid[row][col] == 1:
                 screen.blit(hit_mark, rect)
+            elif grid[row][col] == 2:
+                screen.blit(miss_mark, rect)
+
+    # drawing grid indexes
     num_y = GRID_Y_OFFSET + CELL_SIZE // 2
     for i in range(10):
         draw_text(str(i), medium_font, WHITE, x_offset - CELL_SIZE // 2, num_y)
@@ -162,7 +162,7 @@ def draw_grid(grid, x_offset):
         num_x += CELL_SIZE
 
 
-def draw_water_overlay(x_offset):
+def draw_water_grid(x_offset):
     for row in range(ROWS):
         for col in range(COLS):
             tile_rect = pg.Rect(
@@ -172,6 +172,7 @@ def draw_water_overlay(x_offset):
                 CELL_SIZE,
             )
             screen.blit(water_tile, tile_rect)
+            # grid lines
             pg.draw.rect(screen, VERY_DARK_BLUE, tile_rect, 1)
 
 
@@ -196,29 +197,50 @@ def is_over_player_grid(pos):
     return False
 
 
-async def select_tile(grid, x_offset, pos, selected_tiles):
+def is_over_opponent_grid(pos):
+    x, y = pos
+
+    if (x > GRID2_X_OFFSET and x < GRID2_X_OFFSET + GRID_WIDTH) and (
+        y > GRID_Y_OFFSET and y < GRID_Y_OFFSET + GRID_HEIGHT
+    ):
+        return True
+
+    return False
+
+
+async def select_tile(grid, x_offset, pos):
+    global turn
+
+    if not is_over_opponent_grid(pos):
+        return
+
     x, y = pos
 
     # calculate the cell index
-    col = int((x - x_offset) // CELL_SIZE)
     row = int((y - GRID_Y_OFFSET) // CELL_SIZE)
+    col = int((x - x_offset) // CELL_SIZE)
+
+    # adjust shot based on weather data
     row, col = weather_data.determine_shift([row, col])
 
     if 0 <= col < COLS and 0 <= row < ROWS:
-        if not grid[row][col]:
-            grid[row][col] = True
+        if grid[row][col] == 0:
             tile_coord = (row, col)
-
-            selected_tiles.append(tile_coord)
             await target_coords.put(json.dumps(tile_coord))
 
-            global turn
+            hit_miss_message = await hit_miss.get()
+            if hit_miss_message == "hit":
+                grid[row][col] = 1
+            else:
+                grid[row][col] = 2
+
             turn = False
 
 
 # to snap blocks into place
 def place_boat(boat: pg.Rect):
     global boat_coords
+
     orientation = None
 
     if (
@@ -287,6 +309,7 @@ async def welcome_screen():
     while running:
         screen.blit(background_img_welcome, (0, 0))
         screen.blit(logo_img, (0, 0))
+
         pg.draw.rect(screen, OUTERBOX, box_outer, border_radius=5)
         pg.draw.rect(screen, INNERBOX, box_inner, border_radius=5)
         pg.draw.rect(screen, WHITE, line)
@@ -301,7 +324,6 @@ async def welcome_screen():
         draw_text(
             "Enter a nickname to begin", small_font, PLATINUM, (WIDTH // 2), y * 1.35
         )
-
         draw_text("How to play:", big_font, WHITE, (WIDTH // 2), y * 2)
         draw_text(
             "Place your boats - Use left click to drag them onto the board and right click to rotate",
@@ -362,6 +384,14 @@ async def welcome_screen():
                 if active:
                     if event.key == pg.K_RETURN:
                         if player_title.strip():
+                            draw_text(
+                                "Waiting for other player to connect...",
+                                small_font,
+                                WHITE,
+                                WIDTH // 2,
+                                y * 1.85,
+                            )
+                            pg.display.flip()
                             await player_name.put(player_title)
                             running = False
                     elif event.key == pg.K_BACKSPACE:
@@ -377,15 +407,16 @@ async def welcome_screen():
 # TODO: Get enemy name to display
 async def boat_phase():
     global enemy_title
+
     active_boat = None
 
     while True:
         screen.blit(background_img_game, (0, 0))
 
-        draw_grid(grid1, GRID1_X_OFFSET)
-        draw_grid(grid2, GRID2_X_OFFSET)
-        draw_water_overlay(GRID1_X_OFFSET)
-        draw_water_overlay(GRID2_X_OFFSET)
+        draw_hit(player_grid, GRID1_X_OFFSET)
+        draw_hit(opponent_grid, GRID2_X_OFFSET)
+        draw_water_grid(GRID1_X_OFFSET)
+        draw_water_grid(GRID2_X_OFFSET)
 
         draw_text(
             player_title,
@@ -467,7 +498,7 @@ async def send_grenade_to_your_enemy_boat_phase():
             small_font,
             WHITE,
             (WIDTH - GRID1_X_OFFSET // 2) - 32,
-            GRID_Y_OFFSET + 30,
+            GRID_Y_OFFSET + 40,
         )
 
         draw_text(
@@ -478,30 +509,68 @@ async def send_grenade_to_your_enemy_boat_phase():
             GRID_Y_OFFSET + 10,
         )
 
-        draw_water_overlay(GRID1_X_OFFSET)
-        draw_water_overlay(GRID2_X_OFFSET)
-
-        draw_text(
-            player_title,
-            big_font,
-            WHITE,
-            GRID1_X_OFFSET + GRID_WIDTH // 2,
-            GRID_Y_OFFSET // 2,
+        draw_water_grid(GRID1_X_OFFSET)
+        draw_water_grid(GRID2_X_OFFSET)
+        screen.blit(
+            hit_mark, ((WIDTH - GRID1_X_OFFSET // 2) - 120, GRID_Y_OFFSET + 100)
         )
 
         draw_text(
-            enemy_title,
-            big_font,
+            " means hit",
+            small_font,
             WHITE,
-            GRID2_X_OFFSET + GRID_WIDTH // 2,
-            GRID_Y_OFFSET // 2,
+            (WIDTH - GRID1_X_OFFSET // 2) - 30,
+            GRID_Y_OFFSET + 130,
         )
+
+        screen.blit(
+            miss_mark, ((WIDTH - GRID1_X_OFFSET // 2) - 120, GRID_Y_OFFSET + 150)
+        )
+
+        draw_text(
+            " means miss",
+            small_font,
+            WHITE,
+            (WIDTH - GRID1_X_OFFSET // 2) - 20,
+            GRID_Y_OFFSET + 180,
+        )
+
+        if turn:
+            draw_text(
+                player_title,
+                big_font,
+                GREEN,
+                GRID1_X_OFFSET + GRID_WIDTH // 2,
+                GRID_Y_OFFSET // 2,
+            )
+            draw_text(
+                enemy_title,
+                big_font,
+                WHITE,
+                GRID2_X_OFFSET + GRID_WIDTH // 2,
+                GRID_Y_OFFSET // 2,
+            )
+        else:
+            draw_text(
+                player_title,
+                big_font,
+                WHITE,
+                GRID1_X_OFFSET + GRID_WIDTH // 2,
+                GRID_Y_OFFSET // 2,
+            )
+            draw_text(
+                enemy_title,
+                big_font,
+                GREEN,
+                GRID2_X_OFFSET + GRID_WIDTH // 2,
+                GRID_Y_OFFSET // 2,
+            )
 
         for index, boat in enumerate(boats):
             screen.blit(boat_img_array[index], boat)
 
-        draw_grid(grid1, GRID1_X_OFFSET)
-        draw_grid(grid2, GRID2_X_OFFSET)
+        draw_hit(player_grid, GRID1_X_OFFSET)
+        draw_hit(opponent_grid, GRID2_X_OFFSET)
 
         if hp_value > 10:
             pg.draw.rect(screen, GREEN, hp_rect, border_radius=3)
@@ -513,9 +582,11 @@ async def send_grenade_to_your_enemy_boat_phase():
             pg.draw.rect(screen, RED, hp_rect, border_radius=3)
 
         if is_winner:
-            draw_text("WINNER!", big_font, WHITE, WIDTH // 2, HEIGHT - 100)
+            pg.draw.rect(screen, OUTERBOX, (WIDTH // 2 - 105, HEIGHT - 130, 210, 60), border_radius=10)
+            draw_text("YOU WON!", big_font, WHITE, WIDTH // 2, HEIGHT - 100)
         if is_loser:
-            draw_text("LOSER!", big_font, WHITE, WIDTH // 2, HEIGHT - 100)
+            pg.draw.rect(screen, OUTERBOX, (WIDTH // 2 - 105, HEIGHT - 130, 210, 60), border_radius=10)
+            draw_text("YOU LOST!", big_font, WHITE, WIDTH // 2, HEIGHT - 100)
 
         pg.display.flip()
 
@@ -534,9 +605,13 @@ async def send_grenade_to_your_enemy_boat_phase():
                 turn_message = await asyncio.wait_for(player_turn.get(), 0.1)
                 if turn_message == "Your turn":
                     turn = True
-                hit = await asyncio.wait_for(hit_coords.get(), 0.1)
-                row, col = list(json.loads(hit))
-                grid1[row][col] = True
+                hit_message = await asyncio.wait_for(hit.get(), 0.1)
+                hit_message = list(json.loads(hit_message))
+                row, col = hit_message[0]
+                if hit_message[1] == "hit":
+                    player_grid[row][col] = 1
+                else:
+                    player_grid[row][col] = 2
 
                 hp_value = await asyncio.wait_for(health.get(), 0.1)
                 hp_value = int(json.loads(hp_value))
@@ -547,7 +622,9 @@ async def send_grenade_to_your_enemy_boat_phase():
             if event.type == pg.MOUSEBUTTONDOWN and not is_winner and not is_loser:
                 if turn:
                     await select_tile(
-                        grid2, GRID2_X_OFFSET, event.pos, selected_tiles_opponent
+                        opponent_grid,
+                        GRID2_X_OFFSET,
+                        event.pos,
                     )
 
             if event.type == pg.QUIT:
@@ -582,9 +659,10 @@ async def main():
             target_coords,
             ship_placement,
             player_turn,
-            hit_coords,
+            hit,
             health,
             winner,
+            hit_miss,
         )
     )
 
