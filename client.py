@@ -9,13 +9,13 @@ import websockets
 # TODO: figure out logic to transfer and recieve player names
 async def handle_server_connection(
     player: asyncio.Queue,
-    target: asyncio.Queue,
     ships: asyncio.Queue,
     turn: asyncio.Queue,
+    shot: asyncio.Queue,
     hit: asyncio.Queue,
+    hit_miss: asyncio.Queue,
     health: asyncio.Queue,
     winner: asyncio.Queue,
-    hit_miss: asyncio.Queue,
 ):
     print("Client started!")
     async with websockets.connect("ws://127.0.0.1:5050/client") as server:
@@ -40,11 +40,11 @@ async def handle_server_connection(
 
         while True:
             # if it is the player's turn we need to now
-            # wait for target coords
+            # wait for shot coords
             if turn_message == "Your turn":
-                target_coords = await target.get()
-                await server.send(target_coords)
-                print("Sending target coords to server")
+                shot_coords = await shot.get()
+                await server.send(shot_coords)
+                print("Sending shot coords to server")
 
                 hit_miss_message = await server.recv()
                 print(f"Hit or miss message recieved from server: {hit_miss_message}")
