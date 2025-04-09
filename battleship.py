@@ -133,7 +133,7 @@ def reset_boat(boat: pg.Rect):
         boat.width,
         boat.height,
     )
-    boat_coords[boat_img] = None
+    boat_coords[boat_index] = None
     boat_img_list[boat_index] = boat_img
 
 
