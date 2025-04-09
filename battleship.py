@@ -253,7 +253,6 @@ async def take_shot(grid, x_offset, pos):
             turn = False
 
 
-# to snap blocks into place
 def place_boat(boat: pg.Rect):
     global boat_coords
 
@@ -313,6 +312,7 @@ async def welcome_screen():
 
     input_box = pg.Rect(0, 0, 250, 50)
     input_box.center = (WIDTH // 2, int(y * 1.65))
+
     start_button = pg.Rect(0, 0, 180, 60)
     start_button.center = (WIDTH // 2, int(y * 3.125))
 
@@ -375,6 +375,7 @@ async def welcome_screen():
 
         display_text = player_title + "|" if active else player_title
 
+        # Draw name input box
         pg.draw.rect(screen, color, input_box, 2, border_radius=10)
         txt_surface = font_big.render(display_text, True, WHITE)
         screen.blit(txt_surface, (input_box.x + 5, input_box.y + 5))
@@ -432,8 +433,6 @@ async def welcome_screen():
 
         await asyncio.sleep(0)
 
-
-# TODO: Get enemy name to display
 async def boat_phase():
     global enemy_title
 
@@ -442,11 +441,11 @@ async def boat_phase():
     while True:
         screen.blit(bg_img_game, (0, 0))
 
-        draw_hit(grid_player, GRID1_X_OFFSET)
-        draw_hit(grid_opponent, GRID2_X_OFFSET)
+        # draw grids with water texture overlay
         draw_water_grid(GRID1_X_OFFSET)
         draw_water_grid(GRID2_X_OFFSET)
 
+        # draw player and enemy names
         draw_text_center(
             player_title,
             font_big,
@@ -463,6 +462,7 @@ async def boat_phase():
             GRID_Y_OFFSET // 2,
         )
 
+        # drawing wind info on right side of screen
         draw_text_left(
             str("Wind direction: " + weather_data.string_direction),
             font_small,
@@ -532,6 +532,11 @@ async def send_nuke_to_enemy_boat_phase():
     while True:
         screen.blit(bg_img_game, (0, 0))
 
+        # draw grids with water texture overlay
+        draw_water_grid(GRID1_X_OFFSET)
+        draw_water_grid(GRID2_X_OFFSET)
+
+        # define dimensions for health bar
         hp_rect = pg.Rect(
             GRID1_X_OFFSET,
             GRID_Y_OFFSET + (CELL_SIZE * 10.1),
@@ -539,6 +544,7 @@ async def send_nuke_to_enemy_boat_phase():
             CELL_SIZE * 0.3,
         )
 
+        # drawing wind info and rules on right side of screen
         draw_text_left(
             str("Wind direction: " + weather_data.string_direction),
             font_small,
@@ -554,9 +560,6 @@ async def send_nuke_to_enemy_boat_phase():
             WIDTH - GRID1_X_OFFSET + 10,
             GRID_Y_OFFSET + 10,
         )
-
-        draw_water_grid(GRID1_X_OFFSET)
-        draw_water_grid(GRID2_X_OFFSET)
 
         screen.blit(
             hit_mark, ((WIDTH - GRID1_X_OFFSET // 2) - 120, GRID_Y_OFFSET + 100)
@@ -582,6 +585,7 @@ async def send_nuke_to_enemy_boat_phase():
             GRID_Y_OFFSET + 180,
         )
 
+        # changing color of players name depending on turn
         if turn:
             draw_text_center(
                 player_title,
@@ -619,6 +623,7 @@ async def send_nuke_to_enemy_boat_phase():
         draw_hit(grid_player, GRID1_X_OFFSET)
         draw_hit(grid_opponent, GRID2_X_OFFSET)
 
+        # drawing health bar with different length and color depending on its value
         if hp_value > 10:
             pg.draw.rect(screen, GREEN, hp_rect, border_radius=3)
         elif hp_value < 11 and hp_value > 6:
@@ -627,7 +632,8 @@ async def send_nuke_to_enemy_boat_phase():
             pg.draw.rect(screen, ORANGE, hp_rect, border_radius=3)
         else:
             pg.draw.rect(screen, RED, hp_rect, border_radius=3)
-
+            
+        # display winner or loser when game ends at bottom middle of the screen
         if is_winner:
             pg.draw.rect(
                 screen,
