@@ -445,6 +445,11 @@ async def boat_phase():
         draw_water_grid(GRID1_X_OFFSET)
         draw_water_grid(GRID2_X_OFFSET)
 
+        # draws coordinates + hit
+        # only need the coordinates for now
+        draw_hit(grid_player, GRID1_X_OFFSET)
+        draw_hit(grid_opponent, GRID2_X_OFFSET)
+
         # draw player and enemy names
         draw_text_center(
             player_title,
