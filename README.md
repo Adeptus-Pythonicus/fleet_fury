@@ -42,7 +42,6 @@ python -m venv virtual_environment_name
 
 Activate the virtual environment prior to installing the required modules
 ```
-<<<<<<< HEAD
 source virtual_environment_name/bin/activate    
 ```
 
