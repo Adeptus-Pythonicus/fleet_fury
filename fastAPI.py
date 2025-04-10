@@ -27,46 +27,44 @@ async def client_endpoint(websocket: WebSocket):
 
     # set the index of the current player as the first websocket that got connected.
     current_player_idx = connection_list.index(websocket)
-    is_connected = True
 
-    ship_coords_received = False
-    player_name_received = False
+    # Getting player name and sending it to opponent
+    player_name = await websocket.receive_text()
+    print(f"Player name received from client: {player_name}")
+    if websocket == connection_list[0]:
+        await connection_list[1].send_text(player_name)
+    else:
+        await connection_list[0].send_text(player_name)
+    print("Player name sent to opponent")
+
+    # Receive ship coords from the player
+    # this receives this as list of any data type, this should good
+    print("Waiting for ship coordinates from the client...")
+    ship_coords = await websocket.receive_json()
+    print(f"Ship coords received from client: {ship_coords}")
+
+    # Setting up ship placement for the player
+    # this should be right
+    players[current_player_idx].place_ship(ship_coords)
+    ships_placed[current_player_idx] = True
+
+    # sending initial message turns
+    print("Sending initial turn message...")
+    if websocket == connection_list[0]:
+        await connection_list[1].send_text("Not your turn")
+    else:
+        await connection_list[0].send_text("Your turn")
+    print("Sent initial turn message")
+
+    """
+    validate incoming ship format
+    if not all(len(ship) == 3 and ship[2] in ['h','v'] for ship in ship_coords):
+        await websocket.send_text("ERROR: Invalid ship format")
+        return
+    """
 
     try:
         while True:
-            if not player_name_received:
-                player_name = await websocket.receive_text()
-                print(f"Player name received from client: {player_name}")
-                if websocket == connection_list[0]:
-                    await connection_list[1].send_text(player_name)
-                else:
-                    await connection_list[0].send_text(player_name)
-                player_name_received = True
-
-            if not ship_coords_received:
-                ship_coords = (
-                    await websocket.receive_json()
-                )  # this receives this as list of any data type, this should good
-                print(f"Ship coords received from client: {ship_coords}")
-
-                """
-                validate incoming ship format
-                if not all(len(ship) == 3 and ship[2] in ['h','v'] for ship in ship_coords):
-                    await websocket.send_text("ERROR: Invalid ship format")
-                    return
-                """
-
-                # this should be right
-                players[current_player_idx].place_ship(ship_coords)
-                ship_coords_received = True
-                ships_placed[current_player_idx] = True
-
-                # sending message turns
-                if websocket == connection_list[0]:
-                    await connection_list[1].send_text("Not your turn")
-                else:
-                    await connection_list[0].send_text("Your turn")
-
             # hit process
             hit_coords = await websocket.receive_json()
             print(f"Hit coords received from client: {hit_coords}")
@@ -82,11 +80,16 @@ async def client_endpoint(websocket: WebSocket):
             opponent_idx = 1 - current_player_idx  # just between 1 and 0
             hit_result = players[opponent_idx].take_shot(hit_coords)
 
+            message = "hit" if hit_result else "miss"
+            await connection_list[current_player_idx].send_text(message)
+
+            # check winner
             result = players[opponent_idx].check_winner()
             if result == 1:
                 print("Sending no winner messages")
                 await connection_list[opponent_idx].send_text("No winner")
             if result == 0:
+                print(f"Winner is {player_name}")
                 await connection_list[current_player_idx].send_text("Winner")
                 await connection_list[opponent_idx].send_text("Loser")
 
